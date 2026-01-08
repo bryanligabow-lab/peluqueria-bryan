@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reserva - Peluquería de Bryan</title>
+
+  <style>
+    :root{
+      /* Tema: Negro + Dorado */
+      --bg:#07090d;
+      --card:rgba(17,24,39,.82);
+      --line:rgba(255,255,255,.12);
+      --text:#F9FAFB;
+      --muted:rgba(249,250,251,.72);
+
+      --gold:#d4af37;
+      --gold2:#b88a10;
+
+      --secondary:#334155;
+      --radius:18px;
+
+      --ok:#22c55e;
+      --err:#ef4444;
+    }
+
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto}
+    body{
+      margin:0; min-height:100vh;
+      background:
+        radial-gradient(900px 600px at 20% 10%, rgba(212,175,55,.18), transparent 55%),
+        radial-gradient(900px 600px at 90% 20%, rgba(59,130,246,.10), transparent 55%),
+        var(--bg);
+      color:var(--text);
+      display:flex; justify-content:center; align-items:center;
+      padding:20px;
+    }
+
+    .wrap{max-width:920px;width:100%}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:22px;
+      margin-bottom:16px;
+      box-shadow:0 18px 60px rgba(0,0,0,.40);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      margin-bottom:10px;
+    }
+    .logoBox{
+      width:58px; height:58px;
+      border-radius:16px;
+      overflow:hidden;
+      border:1px solid rgba(212,175,55,.40);
+      background:rgba(255,255,255,.06);
+      display:flex; align-items:center; justify-content:center;
+      flex:0 0 auto;
+    }
+    .logoBox img{width:100%;height:100%;object-fit:cover;display:block}
+
+    h1{margin:0 0 4px;font-size:26px;letter-spacing:.2px}
+    .subtitle{margin:0 0 12px;color:var(--muted)}
+
+    .btn{
+      width:100%;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      font-weight:900;
+      cursor:pointer;
+      margin-top:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      text-decoration:none;
+    }
+    .primary{
+      background:linear-gradient(135deg,var(--gold),var(--gold2));
+      color:#1a1406;
+      border-color:rgba(212,175,55,.45);
+    }
+    .secondary{background:rgba(51,65,85,.40);color:white}
+    .ghost{background:none;color:var(--muted)}
+
+    label{font-size:13px;margin-top:12px;display:block}
+    input,select,textarea{
+      width:100%;
+      padding:10px 11px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.25);
+      color:white;
+      margin-top:6px;
+      outline:none;
+    }
+    textarea{min-height:92px;resize:vertical}
+
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:720px){.grid{grid-template-columns:1fr}}
+
+    .hint{font-size:11.5px;color:rgba(249,250,251,.60);margin-top:6px}
+    .small{font-size:12.5px;line-height:1.45;color:rgba(249,250,251,.66);margin-top:12px}
+
+    .status{display:none;margin-top:12px;padding:10px 12px;border-radius:12px;font-weight:900}
+    .ok{background:rgba(34,197,94,.20);border:1px solid rgba(34,197,94,.45)}
+    .err{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.45)}
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <!-- CARD PRINCIPAL -->
+  <div class="card">
+    <div class="brand">
+      <div class="logoBox">
+  <img
+    src="https://i.imgur.com/8vFlXQw.png"
+    alt="Logo Peluquería de Bryan"
+    onerror="this.style.display='none'; this.parentElement.textContent='Peluquería de Bryan';"
+  />
+</div>
+
+      <div>
+        <h1>Peluquería de Bryan</h1>
+        <p class="subtitle">Reserva tu cita en segundos</p>
+      </div>
+    </div>
+
+    <a id="btnHoy" class="btn primary" href="#" target="_blank" rel="noopener">
+      ✅ Agendar HOY por WhatsApp
+    </a>
+
+    <button id="openForm" class="btn secondary" type="button">
+      📅 Agendar OTRO DÍA (web)
+    </button>
+
+    <div class="small">
+      📍 Dirección del local <br>
+      🕒 Lun–Sáb | 09:00–20:00
+    </div>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div id="formCard" class="card" style="display:none">
+    <h2 style="margin:0 0 6px;font-size:18px;">Formulario de cita</h2>
+    <p style="margin:0 0 10px;color:rgba(249,250,251,.70);font-size:13px;">
+      Completa tus datos. Te confirmaremos por WhatsApp.
+    </p>
+
+    <form id="citaForm">
+      <div class="grid">
+        <div>
+          <label>Nombre y apellido *</label>
+          <input name="nombre" required placeholder="Ej: Bryan Carrión">
+        </div>
+
+        <div>
+          <label>Celular (WhatsApp) *</label>
+          <input name="celular" required placeholder="Ej: 5939XXXXXXXX">
+          <div class="hint">Con código de país (593...).</div>
+        </div>
+
+        <div>
+          <label>Correo electrónico *</label>
+          <input name="email" type="email" required placeholder="tucorreo@gmail.com">
+        </div>
+
+        <div>
+          <label>Peluquero *</label>
+          <select name="barbero" required>
+            <option value="">Selecciona…</option>
+            <option>Bryan</option>
+            <option>Cualquiera</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Fecha *</label>
+          <input name="fecha" type="date" required>
+        </div>
+
+        <div>
+          <label>Hora *</label>
+          <input name="hora" type="time" required>
+        </div>
+
+        <div>
+          <label>Método de pago *</label>
+          <select name="pago" required>
+            <option value="">Selecciona…</option>
+            <option>Efectivo</option>
+            <option>Transferencia</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Presupuesto (USD) *</label>
+          <input name="presupuesto" type="number" min="0" step="0.01" required placeholder="Ej: 15">
+        </div>
+      </div>
+
+      <label>Descripción breve *</label>
+      <textarea name="descripcion" required placeholder="Ej: low fade, barba perfilada..."></textarea>
+
+      <label>Fotos (opcional, máx 3)</label>
+      <input id="fotos" type="file" accept="image/*" multiple>
+      <div class="hint">Consejo: fotos ligeras (ideal &lt; 2MB). Máximo 3.</div>
+
+      <button class="btn primary" type="submit">Enviar solicitud</button>
+      <button id="backHome" class="btn ghost" type="button">⬅ Volver</button>
+
+      <div id="statusOk" class="status ok">✅ Solicitud enviada correctamente.</div>
+      <div id="statusErr" class="status err">❌ Error al enviar.</div>
+    </form>
+
+    <div class="small">
+      Al enviar, aceptas que te contactemos por WhatsApp para confirmar disponibilidad.
+    </div>
+  </div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  // ✅ Tu WebApp
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxWpXdGqiPiAuNb7c3-IKjisDpXn_6phyEstoYb2wGWq8GyA32a0fqbuKBCmQsuohWC/exec";
+
+  // ✅ Cambia al WhatsApp real del negocio
+  const WHATSAPP_BUSINESS = "593999999999";
+
+  const $ = (id)=>document.getElementById(id);
+  const show = el => el.style.display="block";
+  const hide = el => el.style.display="none";
+
+  // WhatsApp HOY
+  const d = new Date();
+  const fechaHoy = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const msgHoy = `Hola, quiero agendar una cita para HOY (${fechaHoy}).%0A%0ANombre:%20%0AServicio:%20%0AHora%20aprox:%20%0A`;
+  $("btnHoy").href = `https://wa.me/${WHATSAPP_BUSINESS}?text=${msgHoy}`;
+
+  // Abrir / cerrar formulario
+  $("openForm").onclick = () => {
+    show($("formCard"));
+    window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
+  };
+
+  $("backHome").onclick = () => {
+    hide($("formCard"));
+    hide($("statusOk"));
+    hide($("statusErr"));
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+
+  // ✅ Fotos a base64 (máx 3)
+  async function filesToBase64(){
+    const input = $("fotos");
+    const files = Array.from(input.files || []).slice(0,3);
+    const out = [];
+
+    for(const f of files){
+      const dataUrl = await new Promise((res, rej)=>{
+        const r = new FileReader();
+        r.onload = ()=>res(r.result);
+        r.onerror = rej;
+        r.readAsDataURL(f);
+      });
+      out.push({ name: f.name, dataUrl });
+    }
+    return out;
+  }
+
+  // ✅ Enviar sin preflight
+  async function send(payload){
+    const r = await fetch(WEB_APP_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+
+    const text = await r.text();
+    try { return JSON.parse(text); }
+    catch { return { ok:false, error:"Respuesta inválida del servidor" }; }
+  }
+
+  // Submit
+  $("citaForm").onsubmit = async e => {
+    e.preventDefault();
+    hide($("statusOk"));
+    hide($("statusErr"));
+
+    const fd = new FormData(e.target);
+
+    const payload = {
+      nombre: (fd.get("nombre")||"").trim(),
+      celular: (fd.get("celular")||"").trim(),
+      email: (fd.get("email")||"").trim(),
+      barbero: fd.get("barbero"),
+      fecha: fd.get("fecha"),
+      hora: fd.get("hora"),
+      pago: fd.get("pago"),
+      presupuesto: fd.get("presupuesto"),
+      descripcion: (fd.get("descripcion")||"").trim(),
+      fotos: await filesToBase64(),   // ✅ ACTIVADO
+      source: "web"
+    };
+
+    const res = await send(payload);
+
+    if(res.ok){
+      show($("statusOk"));
+      e.target.reset();
+    }else{
+      show($("statusErr"));
+      $("statusErr").textContent = "❌ " + (res.error || "Error al enviar");
+    }
+  };
+
+});
+</script>
+
+</body>
+</html>
