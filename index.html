@@ -212,7 +212,14 @@
       <input id="fotos" type="file" accept="image/*" multiple>
       <div class="hint">Consejo: fotos ligeras (ideal &lt; 2MB). Máximo 3.</div>
 
-      <button class="btn primary" type="submit">Enviar solicitud</button>
+     <button id="submitBtn" class="btn primary" type="submit">
+  <span id="submitText">Enviar solicitud</span>
+  <span id="spinner" style="display:none;margin-left:8px;">⏳</span>
+</button>
+<div id="statusSending" class="status" style="display:none;background:rgba(212,175,55,.16);border:1px solid rgba(212,175,55,.38);">
+  ⏳ Enviando solicitud… por favor espera (puede tardar 5–15s). No cierres esta página.
+</div>
+
       <button id="backHome" class="btn ghost" type="button">⬅ Volver</button>
 
       <div id="statusOk" class="status ok">✅ Solicitud enviada correctamente.</div>
@@ -290,11 +297,30 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Submit
-  $("citaForm").onsubmit = async e => {
-    e.preventDefault();
-    hide($("statusOk"));
-    hide($("statusErr"));
+let sending = false;
 
+$("citaForm").onsubmit = async (e) => {
+  e.preventDefault();
+
+  if (sending) return; // ✅ evita doble submit por click/enter
+
+  hide($("statusOk"));
+  hide($("statusErr"));
+  hide($("statusSending"));
+
+  const btn = $("submitBtn");
+  const text = $("submitText");
+  const spin = $("spinner");
+
+  // ✅ UI “enviando…”
+  sending = true;
+  btn.disabled = true;
+  btn.style.opacity = "0.75";
+  text.textContent = "Enviando…";
+  show($("statusSending"));
+  spin.style.display = "inline";
+
+  try {
     const fd = new FormData(e.target);
 
     const payload = {
@@ -307,9 +333,36 @@ document.addEventListener("DOMContentLoaded", () => {
       pago: fd.get("pago"),
       presupuesto: fd.get("presupuesto"),
       descripcion: (fd.get("descripcion")||"").trim(),
-      fotos: await filesToBase64(),   // ✅ ACTIVADO
+      fotos: await filesToBase64(),
       source: "web"
     };
+
+    const res = await send(payload);
+
+    if(res.ok){
+      hide($("statusSending"));
+      show($("statusOk"));
+      e.target.reset();
+    } else {
+      hide($("statusSending"));
+      show($("statusErr"));
+      $("statusErr").textContent = "❌ " + (res.error || "Error al enviar");
+    }
+
+  } catch (err) {
+    hide($("statusSending"));
+    show($("statusErr"));
+    $("statusErr").textContent = "❌ Error de red. Intenta nuevamente.";
+  } finally {
+    // ✅ restaurar botón
+    sending = false;
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    text.textContent = "Enviar solicitud";
+    spin.style.display = "none";
+  }
+};
+
 
     const res = await send(payload);
 
