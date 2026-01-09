@@ -404,272 +404,139 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-  // ✅ Tu WebApp (Apps Script Deploy /exec)
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxWpXdGqiPiAuNb7c3-IKjisDpXn_6phyEstoYb2wGWq8GyA32a0fqbuKBCmQsuohWC/exec";
-
-  // ✅ WhatsApp del negocio
   const WHATSAPP_BUSINESS = "593999999999";
-
-  // ✅ Link Maps
   const MAPS_LINK = "https://www.google.com/maps";
 
-  const $ = (id)=>document.getElementById(id);
-  const show = el => el.style.display="block";
-  const hide = el => el.style.display="none";
+  const $ = (id) => document.getElementById(id);
+  const show = el => el && (el.style.display = "block");
+  const hide = el => el && (el.style.display = "none");
 
-  // Links
-  $("btnMaps").href = MAPS_LINK;
+  const btnMaps = $("btnMaps");
+  const btnHoy = $("btnHoy");
+  const openForm = $("openForm");
+  const formCard = $("formCard");
+  const backHome = $("backHome");
+  const citaForm = $("citaForm");
+  const statusOk = $("statusOk");
+  const statusErr = $("statusErr");
+  const statusSending = $("statusSending");
+  const submitBtn = $("submitBtn");
+  const submitText = $("submitText");
+  const spinner = $("spinner");
+  const fotosInput = $("fotos");
 
-  // WhatsApp HOY (mensaje prellenado)
-  const d = new Date();
-  const fechaHoy = ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")};
-  const msgHoy = Hola, quiero agendar una cita para HOY (${fechaHoy}).%0A%0ANombre:%20%0AServicio:%20%0AHora%20aprox:%20%0A;
-  $("btnHoy").href = https://wa.me/${WHATSAPP_BUSINESS}?text=${msgHoy};
+  // MAPS
+  if (btnMaps) btnMaps.href = MAPS_LINK;
 
-  // Abrir / cerrar formulario
-  $("openForm").onclick = () => {
-    show($("formCard"));
-    window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
-  };
+  // WHATSAPP HOY
+  if (btnHoy) {
+    const d = new Date();
+    const fechaHoy = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    btnHoy.href = `https://wa.me/${WHATSAPP_BUSINESS}?text=Hola, quiero una cita para HOY (${fechaHoy})`;
+  }
 
-  $("backHome").onclick = () => {
-    hide($("formCard"));
-    hide($("statusOk"));
-    hide($("statusErr"));
-    hide($("statusSending"));
-    hide($("slotsCard"));
-    // liberar candado
+  // 🔥 ESTE ES EL BOTÓN QUE ESTABA FALLANDO
+  openForm.addEventListener("click", (e) => {
+    e.preventDefault();
+    show(formCard);
+    formCard.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  backHome.addEventListener("click", () => {
+    hide(formCard);
+    hide(statusOk);
+    hide(statusErr);
+    hide(statusSending);
     sessionStorage.removeItem("booking_sending");
-    // reset hora
-    clearSelectedHour();
-    window.scrollTo({top:0,behavior:"smooth"});
-  };
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
 
-  // ✅ Fotos a base64 (máx 3)
   async function filesToBase64(){
-    const input = $("fotos");
-    const files = Array.from(input.files || []).slice(0,3);
+    if (!fotosInput) return [];
+    const files = Array.from(fotosInput.files || []).slice(0,3);
     const out = [];
-
     for(const f of files){
-      const dataUrl = await new Promise((res, rej)=>{
+      const dataUrl = await new Promise((res)=>{
         const r = new FileReader();
         r.onload = ()=>res(r.result);
-        r.onerror = rej;
         r.readAsDataURL(f);
       });
-      out.push({ name: f.name, dataUrl });
+      out.push({ name:f.name, dataUrl });
     }
     return out;
   }
 
-  // ✅ POST sin preflight (text/plain)
   async function send(payload){
     const r = await fetch(WEB_APP_URL,{
       method:"POST",
       headers:{ "Content-Type":"text/plain;charset=utf-8" },
       body: JSON.stringify(payload)
     });
-
-    const text = await r.text();
-    try { return JSON.parse(text); }
-    catch { return { ok:false, error:"Respuesta inválida del servidor" }; }
+    return JSON.parse(await r.text());
   }
 
-  // ---------------------------
-  //  DISPONIBILIDAD (barberos + slots)
-  // ---------------------------
-  const barberoSelect = $("barberoSelect");
-  const fechaInput = $("fechaInput");
-  const slotsCard = $("slotsCard");
-  const slotsGrid = $("slotsGrid");
-  const slotsLoading = $("slotsLoading");
-  const slotsEmpty = $("slotsEmpty");
+  let sending = false;
 
-  function clearSelectedHour(){
-    $("horaHidden").value = "";
-    $("horaDisplay").value = "";
-    // quitar seleccionado visual
-    const btns = slotsGrid.querySelectorAll(".slotBtn.selected");
-    btns.forEach(b=>b.classList.remove("selected"));
-  }
-
-  function setSelectedHour(h, btn){
-    $("horaHidden").value = h;
-    $("horaDisplay").value = h;
-    // marcar seleccionado
-    const btns = slotsGrid.querySelectorAll(".slotBtn");
-    btns.forEach(b=>b.classList.remove("selected"));
-    if (btn) btn.classList.add("selected");
-  }
-
-  function normalizeDateValue(v){
-    // input[type=date] ya entrega yyyy-mm-dd
-    return (v || "").trim();
-  }
-
-  async function loadBarbers(){
-    barberoSelect.innerHTML = <option value="">Cargando barberos…</option>;
-    const res = await send({ action:"listBarbers" });
-    const list = (res && res.ok && Array.isArray(res.barbers)) ? res.barbers : [];
-
-    if (!list.length){
-      barberoSelect.innerHTML = <option value="">No hay barberos activos</option>;
-      return;
-    }
-
-    barberoSelect.innerHTML = <option value="">Selecciona…</option> + list.map(b=>{
-      const safe = String(b).replace(/</g,"&lt;").replace(/>/g,"&gt;");
-      return <option value="${safe}">${safe}</option>;
-    }).join("");
-  }
-
-  async function loadSlots(){
-    const barbero = (barberoSelect.value || "").trim();
-    const fecha = normalizeDateValue(fechaInput.value);
-
-    clearSelectedHour();
-    slotsGrid.innerHTML = "";
-    show(slotsCard);
-    hide(slotsEmpty);
-    show(slotsLoading);
-
-    if (!barbero || !fecha){
-      hide(slotsLoading);
-      show(slotsEmpty);
-      slotsEmpty.textContent = "Selecciona barbero y fecha para ver horarios.";
-      return;
-    }
-
-    const res = await send({ action:"getSlots", barbero, fecha });
-    hide(slotsLoading);
-
-    if (!res || !res.ok){
-      show(slotsEmpty);
-      slotsEmpty.textContent = "No se pudo cargar horarios. Intenta actualizar.";
-      return;
-    }
-
-    const slots = Array.isArray(res.slots) ? res.slots : [];
-    if (!slots.length){
-      show(slotsEmpty);
-      slotsEmpty.textContent = "No hay horarios disponibles para esta fecha.";
-      return;
-    }
-
-    hide(slotsEmpty);
-    slotsGrid.innerHTML = slots.map(h => {
-      const hh = String(h).trim();
-      return <button type="button" class="slotBtn" data-hour="${hh}">${hh}</button>;
-    }).join("");
-
-    // click handlers
-    slotsGrid.querySelectorAll(".slotBtn").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        setSelectedHour(btn.getAttribute("data-hour"), btn);
-      });
-    });
-  }
-
-  $("refreshSlots").addEventListener("click", loadSlots);
-  barberoSelect.addEventListener("change", loadSlots);
-  fechaInput.addEventListener("change", loadSlots);
-
-  // Cargar barberos al inicio
-  loadBarbers();
-
-  // ---------------------------
-  //  SUBMIT (RESERVA con validación de disponibilidad)
-  // ---------------------------
-  let sendingLock = false;
-
-  $("citaForm").addEventListener("submit", async (e) => {
+  citaForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (sending) return;
 
-    // candado por sesión (por si recargan o intentan varias veces)
-    if (sessionStorage.getItem("booking_sending") === "1") {
-      alert("⏳ Tu solicitud ya se está enviando. Por favor espera unos segundos.");
-      return;
-    }
-    if (sendingLock) return;
+    sending = true;
+    sessionStorage.setItem("booking_sending","1");
 
-    hide($("statusOk"));
-    hide($("statusErr"));
-    hide($("statusSending"));
+    hide(statusOk);
+    hide(statusErr);
+    show(statusSending);
 
-    // validar hora seleccionada
-    if (!$("horaHidden").value){
-      show($("statusErr"));
-      $("statusErr").textContent = "❌ Debes seleccionar un horario disponible.";
-      return;
-    }
-
-    const btn = $("submitBtn");
-    const text = $("submitText");
-    const spin = $("spinner");
-
-    // UI “enviando…”
-    sendingLock = true;
-    sessionStorage.setItem("booking_sending", "1");
-
-    btn.disabled = true;
-    btn.style.opacity = "0.78";
-    text.textContent = "Enviando…";
-    show($("statusSending"));
-    spin.style.display = "inline";
+    submitBtn.disabled = true;
+    submitText.textContent = "Enviando…";
+    spinner.style.display = "inline";
 
     try {
       const fd = new FormData(e.target);
 
       const payload = {
-        action: "book", // ✅ IMPORTANTE: usa disponibilidad + marca RESERVADO
-        nombre: (fd.get("nombre")||"").trim(),
-        celular: (fd.get("celular")||"").trim(),
-        email: (fd.get("email")||"").trim(),
-        barbero: (fd.get("barbero")||"").trim(),
-        fecha: (fd.get("fecha")||"").trim(),
-        hora: (fd.get("hora")||"").trim(), // viene del hidden
+        action: "book",
+        nombre: fd.get("nombre"),
+        celular: fd.get("celular"),
+        email: fd.get("email"),
+        barbero: fd.get("barbero"),
+        fecha: fd.get("fecha"),
+        hora: fd.get("hora"),
         pago: fd.get("pago"),
         presupuesto: fd.get("presupuesto"),
-        descripcion: (fd.get("descripcion")||"").trim(),
+        descripcion: fd.get("descripcion"),
         fotos: await filesToBase64(),
         source: "web"
       };
 
       const res = await send(payload);
 
-      if(res.ok){
-        hide($("statusSending"));
-        show($("statusOk"));
-        e.target.reset();
-        clearSelectedHour();
-        hide(slotsCard);
-
-        // dejar el candado 2s y luego liberar (evita doble click impulsivo)
-        setTimeout(()=>sessionStorage.removeItem("booking_sending"), 2000);
+      if (res.ok) {
+        hide(statusSending);
+        show(statusOk);
+        citaForm.reset();
       } else {
-        hide($("statusSending"));
-        show($("statusErr"));
-        $("statusErr").textContent = "❌ " + (res.error || "Error al enviar");
-        sessionStorage.removeItem("booking_sending");
+        throw new Error(res.error || "Error");
       }
 
-    } catch (err) {
-      hide($("statusSending"));
-      show($("statusErr"));
-      $("statusErr").textContent = "❌ Error de red. Intenta nuevamente.";
-      sessionStorage.removeItem("booking_sending");
+    } catch(err){
+      hide(statusSending);
+      show(statusErr);
+      statusErr.textContent = "❌ " + err.message;
     } finally {
-      sendingLock = false;
-      btn.disabled = false;
-      btn.style.opacity = "1";
-      text.textContent = "Enviar solicitud";
-      spin.style.display = "none";
+      sending = false;
+      submitBtn.disabled = false;
+      submitText.textContent = "Enviar solicitud";
+      spinner.style.display = "none";
+      sessionStorage.removeItem("booking_sending");
     }
   });
 
 });
 </script>
+
 
 </body>
 </html>
