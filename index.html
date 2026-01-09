@@ -35,7 +35,6 @@
       overflow-x:hidden;
     }
 
-    /* Fondo animado pro */
     .bgFX{
       position:fixed; inset:-40px;
       pointer-events:none;
@@ -159,7 +158,6 @@
       color:rgba(249,250,251,.92);
     }
 
-    /* Spinner real */
     .spin{
       width:16px;height:16px;border-radius:50%;
       border:2px solid rgba(26,20,6,.35);
@@ -202,6 +200,7 @@
       background:rgba(255,255,255,.04);
       border:1px solid rgba(255,255,255,.14);
       color:rgba(249,250,251,.92);
+      cursor:pointer;
     }
     .slotGrid{
       display:grid;
@@ -246,7 +245,6 @@
 
   <div class="wrap">
 
-    <!-- CARD PRINCIPAL -->
     <div class="card">
       <div class="brand">
         <div class="brandLeft">
@@ -292,7 +290,6 @@
       </div>
     </div>
 
-    <!-- FORMULARIO -->
     <div id="formCard" class="card" style="display:none">
       <h2 style="margin:0 0 6px;font-size:18px;">Formulario de cita</h2>
       <p style="margin:0 0 10px;color:rgba(249,250,251,.70);font-size:13px;">
@@ -348,29 +345,13 @@
           </div>
 
           <div>
-           <div>
-  <label>Hora seleccionada *</label>
+            <label>Hora seleccionada *</label>
 
-  <!-- Visible (solo lectura) -->
-  <input
-    id="horaDisplay"
-    type="text"
-    placeholder="Elige un horario abajo"
-    readonly
-  >
-
-  <!-- Real que se envía -->
-  <input
-    id="horaHidden"
-    name="hora"
-    type="hidden"
-    required
-  >
-</div>
-
+            <input id="horaDisplay" type="text" placeholder="Elige un horario abajo" readonly>
+            <input id="horaHidden" name="hora" type="hidden" required>
+          </div>
         </div>
 
-        <!-- Horarios -->
         <div id="slotsCard" class="slotCard" style="display:none">
           <div class="slotHeader">
             <div class="slotTitle">🗓️ Horarios disponibles</div>
@@ -418,146 +399,38 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
+  // ✅ WebApp Apps Script
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxWpXdGqiPiAuNb7c3-IKjisDpXn_6phyEstoYb2wGWq8GyA32a0fqbuKBCmQsuohWC/exec";
+
+  // ✅ Cambia al WhatsApp real del negocio
   const WHATSAPP_BUSINESS = "593999999999";
+
+  // ✅ Link Maps
   const MAPS_LINK = "https://www.google.com/maps";
-// --- SELECT BARBERO (dropdown) ---
-const selBarbero = document.querySelector('select[name="barbero"]');
 
-async function api(payload){
-  const r = await fetch(WEB_APP_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload)
-  });
-  const txt = await r.text();
-  try { return JSON.parse(txt); }
-  catch { return { ok:false, error:"Respuesta inválida" }; }
-}
+  const $ = (id)=>document.getElementById(id);
+  const show = (el)=> el && (el.style.display="block");
+  const hide = (el)=> el && (el.style.display="none");
 
-async function loadBarbers(){
-  if (!selBarbero) return;
-
-  // estado visual
-  selBarbero.innerHTML = `<option value="">Cargando barberos...</option>`;
-  selBarbero.disabled = true;
-
- const res = await send({ action: "listBarbers" });
-
-  if (!res || !res.ok) {
-    selBarbero.innerHTML = `<option value="">No se pudo cargar</option>`;
-    selBarbero.disabled = false;
-    return;
-  }
-
-  const barbers = (res.barbers || []).filter(Boolean);
-
-  if (barbers.length === 0) {
-    selBarbero.innerHTML = `<option value="">No hay barberos activos</option>`;
-    selBarbero.disabled = false;
-    return;
-  }
-
-  selBarbero.innerHTML = `<option value="">Selecciona…</option>` + 
-    barbers.map(b => `<option value="${String(b).replace(/"/g,'&quot;')}">${b}</option>`).join("");
-
-  selBarbero.disabled = false;
-}
-const selBarbero = document.querySelector('select[name="barbero"]');
-const inpFecha   = document.querySelector('input[name="fecha"]');
-const horaSelected = document.getElementById("horaSelected");
-const horaReal     = document.getElementById("horaReal");
-const slotsGrid    = document.getElementById("slotsGrid");
-const slotsMsg     = document.getElementById("slotsMsg");
-const btnRefresh   = document.getElementById("btnRefreshSlots");
-
-function clearSlots(msg){
-  if (slotsGrid) slotsGrid.innerHTML = "";
-  if (slotsMsg) slotsMsg.textContent = msg || "Selecciona peluquero y fecha.";
-  if (horaSelected) horaSelected.value = "";
-  if (horaReal) horaReal.value = "";
-}
-
-function slotButton(h){
-  const b = document.createElement("button");
-  b.type = "button";
-  b.className = "btn outline";
-  b.style.marginTop = "0";
-  b.style.width = "auto";
-  b.style.padding = "10px 12px";
-  b.textContent = h;
-
-  b.onclick = () => {
-    // desmarcar otros
-    [...slotsGrid.querySelectorAll("button")].forEach(x => {
-      x.style.filter = "none";
-      x.style.opacity = "1";
-      x.style.borderColor = "rgba(255,255,255,.16)";
-    });
-
-    // marcar seleccionado
-    b.style.filter = "brightness(1.1)";
-    b.style.opacity = "0.95";
-    b.style.borderColor = "rgba(212,175,55,.55)";
-
-    // guardar valor real para enviar
-    horaSelected.value = h;
-    horaReal.value = h;
-    slotsMsg.textContent = `✅ Hora seleccionada: ${h}`;
-  };
-
-  return b;
-}
-
-async function loadSlots(){
-  const barbero = (selBarbero?.value || "").trim();
-  const fecha   = (inpFecha?.value || "").trim(); // yyyy-mm-dd
-
-  if (!barbero || !fecha) {
-    clearSlots("Selecciona peluquero y fecha.");
-    return;
-  }
-
-  clearSlots("⏳ Cargando horarios...");
-
-  const res = await send({ action:"getSlots", barbero, fecha });
-
-  if (!res || !res.ok) {
-    clearSlots("❌ No se pudo cargar horarios.");
-    return;
-  }
-
-  const slots = (res.slots || []);
-  if (slots.length === 0) {
-    clearSlots("No hay horarios disponibles para esta fecha.");
-    return;
-  }
-
-  slotsGrid.innerHTML = "";
-  slotsMsg.textContent = "Elige un horario:";
-  slots.forEach(h => slotsGrid.appendChild(slotButton(h)));
-}
-
-// Eventos: cuando cambie peluquero/fecha
-selBarbero?.addEventListener("change", loadSlots);
-inpFecha?.addEventListener("change", loadSlots);
-btnRefresh?.addEventListener("click", loadSlots);
-
-// Primera carga (por si ya hay valores)
-loadSlots();
-
-// cargar apenas abre la página
-loadBarbers();
-
-  const $ = (id) => document.getElementById(id);
-  const show = el => el && (el.style.display = "block");
-  const hide = el => el && (el.style.display = "none");
-
+  // UI refs
   const btnMaps = $("btnMaps");
   const btnHoy = $("btnHoy");
   const openForm = $("openForm");
   const formCard = $("formCard");
   const backHome = $("backHome");
+
+  const selBarbero = $("barberoSelect");
+  const inpFecha = $("fechaInput");
+
+  const slotsCard = $("slotsCard");
+  const refreshSlotsBtn = $("refreshSlots");
+  const slotsLoading = $("slotsLoading");
+  const slotsEmpty = $("slotsEmpty");
+  const slotsGrid = $("slotsGrid");
+
+  const horaDisplay = $("horaDisplay");
+  const horaHidden = $("horaHidden");
+
   const citaForm = $("citaForm");
   const statusOk = $("statusOk");
   const statusErr = $("statusErr");
@@ -567,38 +440,173 @@ loadBarbers();
   const spinner = $("spinner");
   const fotosInput = $("fotos");
 
-  // MAPS
+  // Links
   if (btnMaps) btnMaps.href = MAPS_LINK;
 
-  // WHATSAPP HOY
+  // WhatsApp HOY
   if (btnHoy) {
     const d = new Date();
     const fechaHoy = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-    btnHoy.href = `https://wa.me/${WHATSAPP_BUSINESS}?text=Hola, quiero una cita para HOY (${fechaHoy})`;
+    const msg = `Hola, quiero agendar una cita para HOY (${fechaHoy}).`;
+    btnHoy.href = `https://wa.me/${WHATSAPP_BUSINESS}?text=${encodeURIComponent(msg)}`;
   }
 
-  // 🔥 ESTE ES EL BOTÓN QUE ESTABA FALLANDO
-  openForm.addEventListener("click", (e) => {
-    e.preventDefault();
-    show(formCard);
-    formCard.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
+  // Abrir / cerrar formulario (blindado)
+  if (openForm && formCard) {
+    openForm.addEventListener("click", (e) => {
+      e.preventDefault();
+      show(formCard);
+      setTimeout(()=>formCard.scrollIntoView({behavior:"smooth", block:"start"}), 50);
+    });
+  }
 
-  backHome.addEventListener("click", () => {
-    hide(formCard);
-    hide(statusOk);
-    hide(statusErr);
-    hide(statusSending);
-    sessionStorage.removeItem("booking_sending");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
+  if (backHome && formCard) {
+    backHome.addEventListener("click", () => {
+      hide(formCard);
+      hide(statusOk);
+      hide(statusErr);
+      hide(statusSending);
+      sessionStorage.removeItem("booking_sending");
+      window.scrollTo({top:0, behavior:"smooth"});
+    });
+  }
 
+  // --- API helper (UNIFICADO) ---
+  async function api(payload){
+    const r = await fetch(WEB_APP_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    const txt = await r.text();
+    try { return JSON.parse(txt); }
+    catch { return { ok:false, error:"Respuesta inválida del servidor" }; }
+  }
+
+  // --- Barberos ---
+  async function loadBarbers(){
+    if (!selBarbero) return;
+
+    selBarbero.innerHTML = `<option value="">Cargando barberos…</option>`;
+    selBarbero.disabled = true;
+
+    const res = await api({ action:"listBarbers" });
+
+    if (!res || !res.ok) {
+      selBarbero.innerHTML = `<option value="">No se pudo cargar</option>`;
+      selBarbero.disabled = false;
+      return;
+    }
+
+    const barbers = (res.barbers || []).filter(Boolean);
+
+    if (barbers.length === 0) {
+      selBarbero.innerHTML = `<option value="">No hay barberos activos</option>`;
+      selBarbero.disabled = false;
+      return;
+    }
+
+    selBarbero.innerHTML =
+      `<option value="">Selecciona…</option>` +
+      barbers.map(b => `<option value="${String(b).replace(/"/g,'&quot;')}">${b}</option>`).join("");
+
+    selBarbero.disabled = false;
+  }
+
+  // --- Slots ---
+  function resetSelectedHour(){
+    if (horaDisplay) horaDisplay.value = "";
+    if (horaHidden) horaHidden.value = "";
+  }
+
+  function clearSlotsUI(){
+    if (slotsGrid) slotsGrid.innerHTML = "";
+    hide(slotsLoading);
+    hide(slotsEmpty);
+  }
+
+  function setLoadingSlots(on){
+    if (!slotsCard) return;
+    show(slotsCard);
+    clearSlotsUI();
+    resetSelectedHour();
+    if (on) show(slotsLoading);
+  }
+
+  function setEmptySlots(){
+    if (!slotsCard) return;
+    show(slotsCard);
+    clearSlotsUI();
+    resetSelectedHour();
+    show(slotsEmpty);
+  }
+
+  function renderSlots(slots){
+    if (!slotsCard) return;
+    show(slotsCard);
+    clearSlotsUI();
+    resetSelectedHour();
+
+    if (!Array.isArray(slots) || slots.length === 0) {
+      setEmptySlots();
+      return;
+    }
+
+    slots.forEach(h => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "slotBtn";
+      btn.textContent = h;
+
+      btn.addEventListener("click", () => {
+        // desmarcar
+        slotsGrid.querySelectorAll(".slotBtn").forEach(x => x.classList.remove("selected"));
+        btn.classList.add("selected");
+
+        // guardar hora
+        if (horaDisplay) horaDisplay.value = h;
+        if (horaHidden) horaHidden.value = h;
+      });
+
+      slotsGrid.appendChild(btn);
+    });
+  }
+
+  async function loadSlots(){
+    const barbero = (selBarbero?.value || "").trim();
+    const fecha = (inpFecha?.value || "").trim(); // yyyy-mm-dd
+
+    if (!barbero || !fecha) {
+      hide(slotsCard);
+      resetSelectedHour();
+      return;
+    }
+
+    setLoadingSlots(true);
+
+    const res = await api({ action:"getSlots", barbero, fecha });
+
+    if (!res || !res.ok) {
+      setEmptySlots();
+      return;
+    }
+
+    renderSlots(res.slots || []);
+  }
+
+  // Eventos
+  if (selBarbero) selBarbero.addEventListener("change", loadSlots);
+  if (inpFecha) inpFecha.addEventListener("change", loadSlots);
+  if (refreshSlotsBtn) refreshSlotsBtn.addEventListener("click", loadSlots);
+
+  // Fotos a base64 (max 3)
   async function filesToBase64(){
     if (!fotosInput) return [];
     const files = Array.from(fotosInput.files || []).slice(0,3);
     const out = [];
-    for(const f of files){
-      const dataUrl = await new Promise((res)=>{
+
+    for (const f of files){
+      const dataUrl = await new Promise((res) => {
         const r = new FileReader();
         r.onload = ()=>res(r.result);
         r.readAsDataURL(f);
@@ -608,84 +616,80 @@ loadBarbers();
     return out;
   }
 
-  const payload = {
-  action: "book",
-  nombre: (fd.get("nombre")||"").trim(),
-  celular: (fd.get("celular")||"").trim(),
-  email: (fd.get("email")||"").trim(),
-  barbero: (fd.get("barbero")||"").trim(),
-  fecha: fd.get("fecha"),
-  hora: fd.get("hora"), // viene del hidden horaReal
-  pago: fd.get("pago"),
-  presupuesto: fd.get("presupuesto"),
-  descripcion: (fd.get("descripcion")||"").trim(),
-  fotos: await filesToBase64(),
-  source: "web"
-};
-
-  }
-
+  // Envío reserva
   let sending = false;
 
-  citaForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (sending) return;
+  if (citaForm) {
+    citaForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (sending) return;
 
-    sending = true;
-    sessionStorage.setItem("booking_sending","1");
+      hide(statusOk);
+      hide(statusErr);
+      show(statusSending);
 
-    hide(statusOk);
-    hide(statusErr);
-    show(statusSending);
-
-    submitBtn.disabled = true;
-    submitText.textContent = "Enviando…";
-    spinner.style.display = "inline";
-
-    try {
-      const fd = new FormData(e.target);
-
-      const payload = {
-        action: "book",
-        nombre: fd.get("nombre"),
-        celular: fd.get("celular"),
-        email: fd.get("email"),
-        barbero: fd.get("barbero"),
-        fecha: fd.get("fecha"),
-        hora: fd.get("hora"),
-        pago: fd.get("pago"),
-        presupuesto: fd.get("presupuesto"),
-        descripcion: fd.get("descripcion"),
-        fotos: await filesToBase64(),
-        source: "web"
-      };
-
-      const res = await send(payload);
-
-      if (res.ok) {
+      // valida hora
+      if (!horaHidden || !horaHidden.value) {
         hide(statusSending);
-        show(statusOk);
-        citaForm.reset();
-      } else {
-        throw new Error(res.error || "Error");
+        show(statusErr);
+        statusErr.textContent = "❌ Selecciona un horario disponible.";
+        return;
       }
 
-    } catch(err){
-      hide(statusSending);
-      show(statusErr);
-      statusErr.textContent = "❌ " + err.message;
-    } finally {
-      sending = false;
-      submitBtn.disabled = false;
-      submitText.textContent = "Enviar solicitud";
-      spinner.style.display = "none";
-      sessionStorage.removeItem("booking_sending");
-    }
-  });
+      sending = true;
+      submitBtn.disabled = true;
+      submitText.textContent = "Enviando…";
+      spinner.style.display = "inline";
+
+      try {
+        const fd = new FormData(e.target);
+
+        const payload = {
+          action: "book",
+          nombre: (fd.get("nombre")||"").trim(),
+          celular: (fd.get("celular")||"").trim(),
+          email: (fd.get("email")||"").trim(),
+          barbero: (fd.get("barbero")||"").trim(),
+          fecha: fd.get("fecha"),
+          hora: fd.get("hora"), // viene de horaHidden
+          pago: fd.get("pago"),
+          presupuesto: fd.get("presupuesto"),
+          descripcion: (fd.get("descripcion")||"").trim(),
+          fotos: await filesToBase64(),
+          source: "web"
+        };
+
+        const res = await api(payload);
+
+        if (res.ok) {
+          hide(statusSending);
+          show(statusOk);
+          citaForm.reset();
+          hide(slotsCard);
+          resetSelectedHour();
+        } else {
+          throw new Error(res.error || "Error al reservar");
+        }
+
+      } catch (err) {
+        hide(statusSending);
+        show(statusErr);
+        statusErr.textContent = "❌ " + (err.message || "Error");
+      } finally {
+        sending = false;
+        submitBtn.disabled = false;
+        submitText.textContent = "Enviar solicitud";
+        spinner.style.display = "none";
+        sessionStorage.removeItem("booking_sending");
+      }
+    });
+  }
+
+  // Inicial
+  loadBarbers();
 
 });
 </script>
-
 
 </body>
 </html>
