@@ -23,6 +23,8 @@
       --err:#ef4444;
 
       --shadow:0 18px 60px rgba(0,0,0,.40);
+      --chip: rgba(255,255,255,.06);
+      --chipLine: rgba(255,255,255,.14);
     }
 
     *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto}
@@ -43,7 +45,6 @@
         radial-gradient(900px 600px at 20% 10%, rgba(212,175,55,.20), transparent 60%),
         radial-gradient(900px 600px at 85% 15%, rgba(59,130,246,.12), transparent 60%),
         radial-gradient(800px 520px at 45% 95%, rgba(34,197,94,.10), transparent 60%);
-      filter: blur(0px);
       animation: floatGlow 10s ease-in-out infinite alternate;
       opacity:.95;
     }
@@ -173,6 +174,92 @@
       display:flex; gap:10px; flex-wrap:wrap;
       justify-content:flex-end;
     }
+
+    /* ===== Slots UI ===== */
+    .slotsCard{
+      margin-top:12px;
+      padding:14px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.03);
+    }
+    .slotsHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .slotsTitle{
+      font-weight:900;
+      font-size:13px;
+      color:rgba(249,250,251,.92);
+    }
+    .slotsHint{
+      font-size:12px;
+      color:rgba(249,250,251,.65);
+    }
+    .slotsGrid{
+      display:grid;
+      grid-template-columns:repeat(6, 1fr);
+      gap:8px;
+    }
+    @media(max-width:860px){ .slotsGrid{grid-template-columns:repeat(4,1fr);} }
+    @media(max-width:520px){ .slotsGrid{grid-template-columns:repeat(3,1fr);} }
+
+    .slotBtn{
+      padding:10px 8px;
+      border-radius:12px;
+      border:1px solid var(--chipLine);
+      background:var(--chip);
+      color:rgba(249,250,251,.92);
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .06s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
+      text-align:center;
+    }
+    .slotBtn:active{ transform: translateY(1px); }
+    .slotBtn:hover{ border-color: rgba(212,175,55,.35); }
+    .slotBtn.selected{
+      background: rgba(212,175,55,.18);
+      border-color: rgba(212,175,55,.55);
+      color:#fff;
+    }
+    .slotBtn.disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+
+    .miniRow{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(212,175,55,.22);
+      background:rgba(212,175,55,.10);
+      font-size:12px;
+      font-weight:900;
+      color:rgba(249,250,251,.90);
+    }
+    .linkBtnSmall{
+      border:none;
+      background:none;
+      color:rgba(249,250,251,.70);
+      cursor:pointer;
+      text-decoration:underline;
+      font-weight:800;
+      padding:0;
+    }
   </style>
 </head>
 
@@ -223,7 +310,7 @@
 
       <div class="small">
         🕒 Lun–Sáb | 09:00–20:00 <br>
-        ✅ Te confirmamos disponibilidad por WhatsApp y correo.
+        ✅ Elige barbero, fecha y hora disponible. Confirmación por correo/WhatsApp.
       </div>
     </div>
 
@@ -231,7 +318,7 @@
     <div id="formCard" class="card" style="display:none">
       <h2 style="margin:0 0 6px;font-size:18px;">Formulario de cita</h2>
       <p style="margin:0 0 10px;color:rgba(249,250,251,.70);font-size:13px;">
-        Completa tus datos. Te confirmaremos por WhatsApp.
+        Completa tus datos y selecciona una hora disponible.
       </p>
 
       <div class="divider"></div>
@@ -256,21 +343,23 @@
 
           <div>
             <label>Peluquero *</label>
-            <select name="barbero" required>
-              <option value="">Selecciona…</option>
-              <option>Bryan</option>
-              <option>Cualquiera</option>
+            <select id="barberoSel" name="barbero" required>
+              <option value="">Cargando barberos…</option>
             </select>
+            <div class="hint">Si no ves barberos, revisa tu hoja <b>BARBEROS</b> (ACTIVO = SI).</div>
           </div>
 
           <div>
             <label>Fecha *</label>
-            <input name="fecha" type="date" required>
+            <input id="fechaSel" name="fecha" type="date" required>
+            <div class="hint">Selecciona una fecha para ver horarios disponibles.</div>
           </div>
 
-          <div>
+          <!-- Hora manual solo si escoges "Cualquiera" -->
+          <div id="horaManualWrap" style="display:none;">
             <label>Hora *</label>
-            <input name="hora" type="time" required>
+            <input id="horaManual" name="hora" type="time">
+            <div class="hint">Modo manual (solo si eliges “Cualquiera”).</div>
           </div>
 
           <div>
@@ -286,6 +375,30 @@
             <label>Presupuesto (USD) *</label>
             <input name="presupuesto" type="number" min="0" step="0.01" required placeholder="Ej: 15">
           </div>
+        </div>
+
+        <!-- Slots (calendario + horas) -->
+        <div id="slotsWrap" class="slotsCard" style="display:none;">
+          <div class="slotsHeader">
+            <div>
+              <div class="slotsTitle">🗓️ Horarios disponibles</div>
+              <div id="slotsSub" class="slotsHint">Selecciona una hora para continuar.</div>
+            </div>
+
+            <button id="refreshSlots" type="button" class="btn outline" style="margin-top:0; width:auto; padding:10px 12px;">
+              🔄 Actualizar
+            </button>
+          </div>
+
+          <div id="slotsGrid" class="slotsGrid"></div>
+
+          <div class="miniRow">
+            <span id="pickedBadge" class="badge" style="display:none;">✅ Hora elegida: <b id="pickedTime"></b></span>
+            <button id="clearPick" type="button" class="linkBtnSmall" style="display:none;">Quitar selección</button>
+          </div>
+
+          <!-- Hora real que se enviará al backend -->
+          <input type="hidden" id="horaHidden" name="hora" />
         </div>
 
         <label>Descripción breve *</label>
@@ -311,7 +424,7 @@
       </form>
 
       <div class="small">
-        Al enviar, aceptas que te contactemos por WhatsApp para confirmar disponibilidad.
+        Al enviar, aceptas que te contactemos por WhatsApp para confirmar.
       </div>
     </div>
 
@@ -320,13 +433,13 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-  // ✅ Tu WebApp
+  // ✅ Tu WebApp (Apps Script)
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxWpXdGqiPiAuNb7c3-IKjisDpXn_6phyEstoYb2wGWq8GyA32a0fqbuKBCmQsuohWC/exec";
 
-  // ✅ Cambia al WhatsApp real del negocio
+  // ✅ WhatsApp del negocio
   const WHATSAPP_BUSINESS = "593999999999";
 
-  // ✅ Link Maps (pon tu dirección real si quieres)
+  // ✅ Link Maps
   const MAPS_LINK = "https://www.google.com/maps";
 
   const $ = (id)=>document.getElementById(id);
@@ -336,16 +449,19 @@ document.addEventListener("DOMContentLoaded", () => {
   // Links
   $("btnMaps").href = MAPS_LINK;
 
-  // WhatsApp HOY (mensaje prellenado)
+  // WhatsApp HOY
   const d = new Date();
   const fechaHoy = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   const msgHoy = `Hola, quiero agendar una cita para HOY (${fechaHoy}).%0A%0ANombre:%20%0AServicio:%20%0AHora%20aprox:%20%0A`;
   $("btnHoy").href = `https://wa.me/${WHATSAPP_BUSINESS}?text=${msgHoy}`;
 
   // Abrir / cerrar formulario
-  $("openForm").onclick = () => {
+  $("openForm").onclick = async () => {
     show($("formCard"));
     window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
+    await loadBarbers();
+    // Si ya hay fecha elegida, refresca (opcional)
+    maybeFetchSlots();
   };
 
   $("backHome").onclick = () => {
@@ -353,12 +469,12 @@ document.addEventListener("DOMContentLoaded", () => {
     hide($("statusOk"));
     hide($("statusErr"));
     hide($("statusSending"));
-    // liberar candado
     sessionStorage.removeItem("booking_sending");
+    clearSelection();
     window.scrollTo({top:0,behavior:"smooth"});
   };
 
-  // ✅ Fotos a base64 (máx 3)
+  // ===== Helpers base64 =====
   async function filesToBase64(){
     const input = $("fotos");
     const files = Array.from(input.files || []).slice(0,3);
@@ -376,7 +492,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return out;
   }
 
-  // ✅ Enviar sin preflight
+  // ===== Fetch helper =====
   async function send(payload){
     const r = await fetch(WEB_APP_URL,{
       method:"POST",
@@ -389,18 +505,151 @@ document.addEventListener("DOMContentLoaded", () => {
     catch { return { ok:false, error:"Respuesta inválida del servidor" }; }
   }
 
-  // ✅ Anti doble envío (extra) por sesión
+  // ===== Barberos =====
+  const barberoSel = $("barberoSel");
+  const fechaSel = $("fechaSel");
+
+  async function loadBarbers(){
+    // si ya los cargamos una vez, no recargar
+    if (barberoSel.dataset.loaded === "1") return;
+
+    barberoSel.innerHTML = `<option value="">Cargando…</option>`;
+    const res = await send({ action: "listBarbers" });
+
+    if (!res || !res.ok) {
+      barberoSel.innerHTML = `<option value="">No se pudieron cargar barberos</option>`;
+      return;
+    }
+
+    const list = Array.isArray(res.barbers) ? res.barbers : [];
+
+    // Siempre dejamos “Cualquiera” como opción manual (opcional)
+    const options = [
+      `<option value="">Selecciona…</option>`,
+      ...list.map(b => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`),
+      `<option value="Cualquiera">Cualquiera</option>`
+    ];
+
+    barberoSel.innerHTML = options.join("");
+    barberoSel.dataset.loaded = "1";
+  }
+
+  // ===== Slots UI =====
+  const slotsWrap = $("slotsWrap");
+  const slotsGrid = $("slotsGrid");
+  const slotsSub  = $("slotsSub");
+  const horaHidden = $("horaHidden");
+  const horaManualWrap = $("horaManualWrap");
+  const horaManual = $("horaManual");
+
+  let selectedSlot = "";
+
+  function escapeHtml(str){
+    return String(str || "")
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+  }
+
+  function clearSelection(){
+    selectedSlot = "";
+    horaHidden.value = "";
+    horaManual.value = "";
+    hide($("pickedBadge"));
+    hide($("clearPick"));
+    $("pickedTime").textContent = "";
+    [...slotsGrid.querySelectorAll(".slotBtn")].forEach(b => b.classList.remove("selected"));
+  }
+
+  function pickSlot(time){
+    selectedSlot = time;
+    horaHidden.value = time;
+    $("pickedTime").textContent = time;
+    show($("pickedBadge"));
+    show($("clearPick"));
+    [...slotsGrid.querySelectorAll(".slotBtn")].forEach(b => {
+      b.classList.toggle("selected", b.dataset.time === time);
+    });
+  }
+
+  $("clearPick").addEventListener("click", clearSelection);
+
+  async function fetchSlots(barbero, fecha){
+    slotsGrid.innerHTML = "";
+    slotsSub.textContent = "⏳ Cargando horarios…";
+    show(slotsWrap);
+
+    const res = await send({ action: "getSlots", barbero, fecha });
+
+    if (!res || !res.ok) {
+      slotsSub.textContent = "❌ No se pudo cargar disponibilidad.";
+      return;
+    }
+
+    const slots = Array.isArray(res.slots) ? res.slots : [];
+    if (slots.length === 0) {
+      slotsSub.textContent = "No hay horarios disponibles para esta fecha.";
+      return;
+    }
+
+    slotsSub.textContent = "Selecciona una hora:";
+    clearSelection();
+
+    // Render botones
+    slotsGrid.innerHTML = slots.map(t => `
+      <button type="button" class="slotBtn" data-time="${escapeHtml(t)}">${escapeHtml(t)}</button>
+    `).join("");
+
+    // Click handlers
+    [...slotsGrid.querySelectorAll(".slotBtn")].forEach(btn => {
+      btn.addEventListener("click", () => pickSlot(btn.dataset.time));
+    });
+  }
+
+  function setModeByBarber(){
+    const b = String(barberoSel.value || "");
+    const isAny = (b === "Cualquiera");
+
+    if (isAny) {
+      // Modo manual: el cliente escribe hora
+      hide(slotsWrap);
+      show(horaManualWrap);
+      horaManual.required = true;
+      horaHidden.required = false;
+      clearSelection();
+    } else {
+      // Modo disponibilidad (slots)
+      hide(horaManualWrap);
+      horaManual.required = false;
+      horaHidden.required = true;
+      maybeFetchSlots();
+    }
+  }
+
+  async function maybeFetchSlots(){
+    const barbero = String(barberoSel.value || "").trim();
+    const fecha = String(fechaSel.value || "").trim();
+
+    if (!barbero || barbero === "Cualquiera") return;
+    if (!fecha) return;
+
+    await fetchSlots(barbero, fecha);
+  }
+
+  barberoSel.addEventListener("change", setModeByBarber);
+  fechaSel.addEventListener("change", maybeFetchSlots);
+  $("refreshSlots").addEventListener("click", maybeFetchSlots);
+
+  // ===== Envío =====
   let sending = false;
 
   $("citaForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // candado por sesión (por si recargan o intentan varias veces)
     if (sessionStorage.getItem("booking_sending") === "1") {
       alert("⏳ Tu solicitud ya se está enviando. Por favor espera unos segundos.");
       return;
     }
-
     if (sending) return;
 
     hide($("statusOk"));
@@ -411,7 +660,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const text = $("submitText");
     const spin = $("spinner");
 
-    // UI “enviando…”
     sending = true;
     sessionStorage.setItem("booking_sending", "1");
 
@@ -424,19 +672,37 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const fd = new FormData(e.target);
 
-      const payload = {
-        nombre: (fd.get("nombre")||"").trim(),
-        celular: (fd.get("celular")||"").trim(),
-        email: (fd.get("email")||"").trim(),
-        barbero: fd.get("barbero"),
-        fecha: fd.get("fecha"),
-        hora: fd.get("hora"),
-        pago: fd.get("pago"),
-        presupuesto: fd.get("presupuesto"),
-        descripcion: (fd.get("descripcion")||"").trim(),
+      const barbero = (fd.get("barbero") || "").toString().trim();
+      const fecha = (fd.get("fecha") || "").toString().trim();
+
+      // Hora: viene de slots (hidden) o manual (si Cualquiera)
+      const hora = barbero === "Cualquiera"
+        ? (horaManual.value || "").trim()
+        : (horaHidden.value || "").trim();
+
+      if (!barbero) throw new Error("Selecciona un peluquero.");
+      if (!fecha) throw new Error("Selecciona una fecha.");
+      if (!hora) throw new Error("Selecciona una hora disponible.");
+
+      const payloadBase = {
+        nombre: (fd.get("nombre")||"").toString().trim(),
+        celular: (fd.get("celular")||"").toString().trim(),
+        email: (fd.get("email")||"").toString().trim(),
+        barbero,
+        fecha,
+        hora,
+        pago: (fd.get("pago")||"").toString(),
+        presupuesto: (fd.get("presupuesto")||"").toString(),
+        descripcion: (fd.get("descripcion")||"").toString().trim(),
         fotos: await filesToBase64(),
         source: "web"
       };
+
+      // Si NO es "Cualquiera" => reservar con disponibilidad (action: book)
+      // Si es "Cualquiera" => usa el flujo normal (sin disponibilidad)
+      const payload = (barbero === "Cualquiera")
+        ? payloadBase
+        : { action: "book", ...payloadBase };
 
       const res = await send(payload);
 
@@ -444,7 +710,8 @@ document.addEventListener("DOMContentLoaded", () => {
         hide($("statusSending"));
         show($("statusOk"));
         e.target.reset();
-        // dejar el candado 2s y luego liberar (evita doble click impulsivo)
+        clearSelection();
+        // liberar candado luego de 2s
         setTimeout(()=>sessionStorage.removeItem("booking_sending"), 2000);
       } else {
         hide($("statusSending"));
@@ -456,7 +723,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       hide($("statusSending"));
       show($("statusErr"));
-      $("statusErr").textContent = "❌ Error de red. Intenta nuevamente.";
+      $("statusErr").textContent = "❌ " + (err && err.message ? err.message : "Error de red. Intenta nuevamente.");
       sessionStorage.removeItem("booking_sending");
     } finally {
       sending = false;
