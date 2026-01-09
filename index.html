@@ -348,12 +348,26 @@
           </div>
 
           <div>
-            <label>Hora seleccionada *</label>
-            <!-- Visible (solo lectura) -->
-            <input id="horaDisplay" type="text" placeholder="Elige un horario abajo" readonly>
-            <!-- Real que se envía -->
-            <input id="horaHidden" name="hora" type="hidden" required>
-          </div>
+           <div>
+  <label>Hora seleccionada *</label>
+
+  <!-- Visible (solo lectura) -->
+  <input
+    id="horaDisplay"
+    type="text"
+    placeholder="Elige un horario abajo"
+    readonly
+  >
+
+  <!-- Real que se envía -->
+  <input
+    id="horaHidden"
+    name="hora"
+    type="hidden"
+    required
+  >
+</div>
+
         </div>
 
         <!-- Horarios -->
@@ -449,6 +463,88 @@ async function loadBarbers(){
 
   selBarbero.disabled = false;
 }
+const selBarbero = document.querySelector('select[name="barbero"]');
+const inpFecha   = document.querySelector('input[name="fecha"]');
+const horaSelected = document.getElementById("horaSelected");
+const horaReal     = document.getElementById("horaReal");
+const slotsGrid    = document.getElementById("slotsGrid");
+const slotsMsg     = document.getElementById("slotsMsg");
+const btnRefresh   = document.getElementById("btnRefreshSlots");
+
+function clearSlots(msg){
+  if (slotsGrid) slotsGrid.innerHTML = "";
+  if (slotsMsg) slotsMsg.textContent = msg || "Selecciona peluquero y fecha.";
+  if (horaSelected) horaSelected.value = "";
+  if (horaReal) horaReal.value = "";
+}
+
+function slotButton(h){
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "btn outline";
+  b.style.marginTop = "0";
+  b.style.width = "auto";
+  b.style.padding = "10px 12px";
+  b.textContent = h;
+
+  b.onclick = () => {
+    // desmarcar otros
+    [...slotsGrid.querySelectorAll("button")].forEach(x => {
+      x.style.filter = "none";
+      x.style.opacity = "1";
+      x.style.borderColor = "rgba(255,255,255,.16)";
+    });
+
+    // marcar seleccionado
+    b.style.filter = "brightness(1.1)";
+    b.style.opacity = "0.95";
+    b.style.borderColor = "rgba(212,175,55,.55)";
+
+    // guardar valor real para enviar
+    horaSelected.value = h;
+    horaReal.value = h;
+    slotsMsg.textContent = `✅ Hora seleccionada: ${h}`;
+  };
+
+  return b;
+}
+
+async function loadSlots(){
+  const barbero = (selBarbero?.value || "").trim();
+  const fecha   = (inpFecha?.value || "").trim(); // yyyy-mm-dd
+
+  if (!barbero || !fecha) {
+    clearSlots("Selecciona peluquero y fecha.");
+    return;
+  }
+
+  clearSlots("⏳ Cargando horarios...");
+
+  const res = await send({ action:"getSlots", barbero, fecha });
+
+  if (!res || !res.ok) {
+    clearSlots("❌ No se pudo cargar horarios.");
+    return;
+  }
+
+  const slots = (res.slots || []);
+  if (slots.length === 0) {
+    clearSlots("No hay horarios disponibles para esta fecha.");
+    return;
+  }
+
+  slotsGrid.innerHTML = "";
+  slotsMsg.textContent = "Elige un horario:";
+  slots.forEach(h => slotsGrid.appendChild(slotButton(h)));
+}
+
+// Eventos: cuando cambie peluquero/fecha
+selBarbero?.addEventListener("change", loadSlots);
+inpFecha?.addEventListener("change", loadSlots);
+btnRefresh?.addEventListener("click", loadSlots);
+
+// Primera carga (por si ya hay valores)
+loadSlots();
 
 // cargar apenas abre la página
 loadBarbers();
@@ -512,13 +608,21 @@ loadBarbers();
     return out;
   }
 
-  async function send(payload){
-    const r = await fetch(WEB_APP_URL,{
-      method:"POST",
-      headers:{ "Content-Type":"text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
-    });
-    return JSON.parse(await r.text());
+  const payload = {
+  action: "book",
+  nombre: (fd.get("nombre")||"").trim(),
+  celular: (fd.get("celular")||"").trim(),
+  email: (fd.get("email")||"").trim(),
+  barbero: (fd.get("barbero")||"").trim(),
+  fecha: fd.get("fecha"),
+  hora: fd.get("hora"), // viene del hidden horaReal
+  pago: fd.get("pago"),
+  presupuesto: fd.get("presupuesto"),
+  descripcion: (fd.get("descripcion")||"").trim(),
+  fotos: await filesToBase64(),
+  source: "web"
+};
+
   }
 
   let sending = false;
