@@ -407,6 +407,51 @@ document.addEventListener("DOMContentLoaded", () => {
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxWpXdGqiPiAuNb7c3-IKjisDpXn_6phyEstoYb2wGWq8GyA32a0fqbuKBCmQsuohWC/exec";
   const WHATSAPP_BUSINESS = "593999999999";
   const MAPS_LINK = "https://www.google.com/maps";
+// --- SELECT BARBERO (dropdown) ---
+const selBarbero = document.querySelector('select[name="barbero"]');
+
+async function api(payload){
+  const r = await fetch(WEB_APP_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  });
+  const txt = await r.text();
+  try { return JSON.parse(txt); }
+  catch { return { ok:false, error:"Respuesta inválida" }; }
+}
+
+async function loadBarbers(){
+  if (!selBarbero) return;
+
+  // estado visual
+  selBarbero.innerHTML = `<option value="">Cargando barberos...</option>`;
+  selBarbero.disabled = true;
+
+ const res = await send({ action: "listBarbers" });
+
+  if (!res || !res.ok) {
+    selBarbero.innerHTML = `<option value="">No se pudo cargar</option>`;
+    selBarbero.disabled = false;
+    return;
+  }
+
+  const barbers = (res.barbers || []).filter(Boolean);
+
+  if (barbers.length === 0) {
+    selBarbero.innerHTML = `<option value="">No hay barberos activos</option>`;
+    selBarbero.disabled = false;
+    return;
+  }
+
+  selBarbero.innerHTML = `<option value="">Selecciona…</option>` + 
+    barbers.map(b => `<option value="${String(b).replace(/"/g,'&quot;')}">${b}</option>`).join("");
+
+  selBarbero.disabled = false;
+}
+
+// cargar apenas abre la página
+loadBarbers();
 
   const $ = (id) => document.getElementById(id);
   const show = el => el && (el.style.display = "block");
