@@ -23,8 +23,6 @@
       --err:#ef4444;
 
       --shadow:0 18px 60px rgba(0,0,0,.40);
-      --chip: rgba(255,255,255,.06);
-      --chipLine: rgba(255,255,255,.14);
     }
 
     *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto}
@@ -126,6 +124,7 @@
       color:rgba(249,250,251,.92);
       border:1px solid rgba(255,255,255,.16);
     }
+    .btn:disabled{opacity:.6; cursor:not-allowed}
 
     .row2{display:grid;grid-template-columns:1fr 1fr; gap:12px;}
     @media(max-width:720px){.row2{grid-template-columns:1fr}}
@@ -175,90 +174,69 @@
       justify-content:flex-end;
     }
 
-    /* ===== Slots UI ===== */
-    .slotsCard{
+    /* Horarios */
+    .slotCard{
       margin-top:12px;
       padding:14px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.14);
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
       background:rgba(255,255,255,.03);
     }
-    .slotsHeader{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
+    .slotHeader{
+      display:flex; align-items:center; justify-content:space-between;
       gap:10px;
-      flex-wrap:wrap;
       margin-bottom:10px;
+      flex-wrap:wrap;
     }
-    .slotsTitle{
+    .slotTitle{
       font-weight:900;
-      font-size:13px;
+      display:flex; align-items:center; gap:8px;
       color:rgba(249,250,251,.92);
     }
-    .slotsHint{
-      font-size:12px;
-      color:rgba(249,250,251,.65);
+    .miniBtn{
+      width:auto;
+      margin-top:0;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:800;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.14);
+      color:rgba(249,250,251,.92);
     }
-    .slotsGrid{
+    .slotGrid{
       display:grid;
-      grid-template-columns:repeat(6, 1fr);
-      gap:8px;
+      grid-template-columns: repeat(6, 1fr);
+      gap:10px;
     }
-    @media(max-width:860px){ .slotsGrid{grid-template-columns:repeat(4,1fr);} }
-    @media(max-width:520px){ .slotsGrid{grid-template-columns:repeat(3,1fr);} }
+    @media(max-width:900px){ .slotGrid{grid-template-columns: repeat(4, 1fr);} }
+    @media(max-width:560px){ .slotGrid{grid-template-columns: repeat(3, 1fr);} }
 
     .slotBtn{
-      padding:10px 8px;
+      width:100%;
+      padding:10px 10px;
       border-radius:12px;
-      border:1px solid var(--chipLine);
-      background:var(--chip);
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
       color:rgba(249,250,251,.92);
       font-weight:900;
       cursor:pointer;
+      transition: transform .06s ease, filter .2s ease, background .2s ease, border-color .2s ease;
       user-select:none;
-      transition: transform .06s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
-      text-align:center;
     }
+    .slotBtn:hover{ filter:brightness(1.08); }
     .slotBtn:active{ transform: translateY(1px); }
-    .slotBtn:hover{ border-color: rgba(212,175,55,.35); }
+
     .slotBtn.selected{
-      background: rgba(212,175,55,.18);
-      border-color: rgba(212,175,55,.55);
+      background:linear-gradient(135deg, rgba(212,175,55,.32), rgba(184,138,16,.22));
+      border-color:rgba(212,175,55,.55);
       color:#fff;
-    }
-    .slotBtn.disabled{
-      opacity:.45;
-      cursor:not-allowed;
+      box-shadow:0 10px 22px rgba(212,175,55,.10);
     }
 
-    .miniRow{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:10px;
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid rgba(212,175,55,.22);
-      background:rgba(212,175,55,.10);
-      font-size:12px;
-      font-weight:900;
-      color:rgba(249,250,251,.90);
-    }
-    .linkBtnSmall{
-      border:none;
-      background:none;
+    .slotEmpty{
       color:rgba(249,250,251,.70);
-      cursor:pointer;
-      text-decoration:underline;
-      font-weight:800;
-      padding:0;
+      font-size:12.5px;
+      padding:10px 0;
     }
   </style>
 </head>
@@ -310,7 +288,7 @@
 
       <div class="small">
         🕒 Lun–Sáb | 09:00–20:00 <br>
-        ✅ Elige barbero, fecha y hora disponible. Confirmación por correo/WhatsApp.
+        ✅ Selecciona un horario disponible y te llegará correo automático.
       </div>
     </div>
 
@@ -343,7 +321,7 @@
 
           <div>
             <label>Peluquero *</label>
-            <select id="barberoSel" name="barbero" required>
+            <select id="barberoSelect" name="barbero" required>
               <option value="">Cargando barberos…</option>
             </select>
             <div class="hint">Si no ves barberos, revisa tu hoja <b>BARBEROS</b> (ACTIVO = SI).</div>
@@ -351,15 +329,8 @@
 
           <div>
             <label>Fecha *</label>
-            <input id="fechaSel" name="fecha" type="date" required>
+            <input id="fechaInput" name="fecha" type="date" required>
             <div class="hint">Selecciona una fecha para ver horarios disponibles.</div>
-          </div>
-
-          <!-- Hora manual solo si escoges "Cualquiera" -->
-          <div id="horaManualWrap" style="display:none;">
-            <label>Hora *</label>
-            <input id="horaManual" name="hora" type="time">
-            <div class="hint">Modo manual (solo si eliges “Cualquiera”).</div>
           </div>
 
           <div>
@@ -375,30 +346,30 @@
             <label>Presupuesto (USD) *</label>
             <input name="presupuesto" type="number" min="0" step="0.01" required placeholder="Ej: 15">
           </div>
+
+          <div>
+            <label>Hora seleccionada *</label>
+            <!-- Visible (solo lectura) -->
+            <input id="horaDisplay" type="text" placeholder="Elige un horario abajo" readonly>
+            <!-- Real que se envía -->
+            <input id="horaHidden" name="hora" type="hidden" required>
+          </div>
         </div>
 
-        <!-- Slots (calendario + horas) -->
-        <div id="slotsWrap" class="slotsCard" style="display:none;">
-          <div class="slotsHeader">
-            <div>
-              <div class="slotsTitle">🗓️ Horarios disponibles</div>
-              <div id="slotsSub" class="slotsHint">Selecciona una hora para continuar.</div>
-            </div>
-
-            <button id="refreshSlots" type="button" class="btn outline" style="margin-top:0; width:auto; padding:10px 12px;">
-              🔄 Actualizar
-            </button>
+        <!-- Horarios -->
+        <div id="slotsCard" class="slotCard" style="display:none">
+          <div class="slotHeader">
+            <div class="slotTitle">🗓️ Horarios disponibles</div>
+            <button id="refreshSlots" class="miniBtn" type="button">🔄 Actualizar</button>
           </div>
 
-          <div id="slotsGrid" class="slotsGrid"></div>
+          <div id="slotsLoading" class="slotEmpty" style="display:none">⏳ Cargando horarios…</div>
+          <div id="slotsEmpty" class="slotEmpty" style="display:none">No hay horarios disponibles para esta fecha.</div>
+          <div id="slotsGrid" class="slotGrid"></div>
 
-          <div class="miniRow">
-            <span id="pickedBadge" class="badge" style="display:none;">✅ Hora elegida: <b id="pickedTime"></b></span>
-            <button id="clearPick" type="button" class="linkBtnSmall" style="display:none;">Quitar selección</button>
+          <div class="hint" style="margin-top:10px;">
+            Tip: si cambias de barbero o fecha, los horarios se actualizan automáticamente.
           </div>
-
-          <!-- Hora real que se enviará al backend -->
-          <input type="hidden" id="horaHidden" name="hora" />
         </div>
 
         <label>Descripción breve *</label>
@@ -424,7 +395,7 @@
       </form>
 
       <div class="small">
-        Al enviar, aceptas que te contactemos por WhatsApp para confirmar.
+        Al enviar, aceptas que te contactemos por WhatsApp para confirmar disponibilidad.
       </div>
     </div>
 
@@ -433,7 +404,7 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-  // ✅ Tu WebApp (Apps Script)
+  // ✅ Tu WebApp (Apps Script Deploy /exec)
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxWpXdGqiPiAuNb7c3-IKjisDpXn_6phyEstoYb2wGWq8GyA32a0fqbuKBCmQsuohWC/exec";
 
   // ✅ WhatsApp del negocio
@@ -449,19 +420,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // Links
   $("btnMaps").href = MAPS_LINK;
 
-  // WhatsApp HOY
+  // WhatsApp HOY (mensaje prellenado)
   const d = new Date();
-  const fechaHoy = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-  const msgHoy = `Hola, quiero agendar una cita para HOY (${fechaHoy}).%0A%0ANombre:%20%0AServicio:%20%0AHora%20aprox:%20%0A`;
-  $("btnHoy").href = `https://wa.me/${WHATSAPP_BUSINESS}?text=${msgHoy}`;
+  const fechaHoy = ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")};
+  const msgHoy = Hola, quiero agendar una cita para HOY (${fechaHoy}).%0A%0ANombre:%20%0AServicio:%20%0AHora%20aprox:%20%0A;
+  $("btnHoy").href = https://wa.me/${WHATSAPP_BUSINESS}?text=${msgHoy};
 
   // Abrir / cerrar formulario
-  $("openForm").onclick = async () => {
+  $("openForm").onclick = () => {
     show($("formCard"));
     window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
-    await loadBarbers();
-    // Si ya hay fecha elegida, refresca (opcional)
-    maybeFetchSlots();
   };
 
   $("backHome").onclick = () => {
@@ -469,12 +437,15 @@ document.addEventListener("DOMContentLoaded", () => {
     hide($("statusOk"));
     hide($("statusErr"));
     hide($("statusSending"));
+    hide($("slotsCard"));
+    // liberar candado
     sessionStorage.removeItem("booking_sending");
-    clearSelection();
+    // reset hora
+    clearSelectedHour();
     window.scrollTo({top:0,behavior:"smooth"});
   };
 
-  // ===== Helpers base64 =====
+  // ✅ Fotos a base64 (máx 3)
   async function filesToBase64(){
     const input = $("fotos");
     const files = Array.from(input.files || []).slice(0,3);
@@ -492,7 +463,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return out;
   }
 
-  // ===== Fetch helper =====
+  // ✅ POST sin preflight (text/plain)
   async function send(payload){
     const r = await fetch(WEB_APP_URL,{
       method:"POST",
@@ -505,162 +476,140 @@ document.addEventListener("DOMContentLoaded", () => {
     catch { return { ok:false, error:"Respuesta inválida del servidor" }; }
   }
 
-  // ===== Barberos =====
-  const barberoSel = $("barberoSel");
-  const fechaSel = $("fechaSel");
+  // ---------------------------
+  //  DISPONIBILIDAD (barberos + slots)
+  // ---------------------------
+  const barberoSelect = $("barberoSelect");
+  const fechaInput = $("fechaInput");
+  const slotsCard = $("slotsCard");
+  const slotsGrid = $("slotsGrid");
+  const slotsLoading = $("slotsLoading");
+  const slotsEmpty = $("slotsEmpty");
+
+  function clearSelectedHour(){
+    $("horaHidden").value = "";
+    $("horaDisplay").value = "";
+    // quitar seleccionado visual
+    const btns = slotsGrid.querySelectorAll(".slotBtn.selected");
+    btns.forEach(b=>b.classList.remove("selected"));
+  }
+
+  function setSelectedHour(h, btn){
+    $("horaHidden").value = h;
+    $("horaDisplay").value = h;
+    // marcar seleccionado
+    const btns = slotsGrid.querySelectorAll(".slotBtn");
+    btns.forEach(b=>b.classList.remove("selected"));
+    if (btn) btn.classList.add("selected");
+  }
+
+  function normalizeDateValue(v){
+    // input[type=date] ya entrega yyyy-mm-dd
+    return (v || "").trim();
+  }
 
   async function loadBarbers(){
-    // si ya los cargamos una vez, no recargar
-    if (barberoSel.dataset.loaded === "1") return;
+    barberoSelect.innerHTML = <option value="">Cargando barberos…</option>;
+    const res = await send({ action:"listBarbers" });
+    const list = (res && res.ok && Array.isArray(res.barbers)) ? res.barbers : [];
 
-    barberoSel.innerHTML = `<option value="">Cargando…</option>`;
-    const res = await send({ action: "listBarbers" });
-
-    if (!res || !res.ok) {
-      barberoSel.innerHTML = `<option value="">No se pudieron cargar barberos</option>`;
+    if (!list.length){
+      barberoSelect.innerHTML = <option value="">No hay barberos activos</option>;
       return;
     }
 
-    const list = Array.isArray(res.barbers) ? res.barbers : [];
-
-    // Siempre dejamos “Cualquiera” como opción manual (opcional)
-    const options = [
-      `<option value="">Selecciona…</option>`,
-      ...list.map(b => `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`),
-      `<option value="Cualquiera">Cualquiera</option>`
-    ];
-
-    barberoSel.innerHTML = options.join("");
-    barberoSel.dataset.loaded = "1";
+    barberoSelect.innerHTML = <option value="">Selecciona…</option> + list.map(b=>{
+      const safe = String(b).replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      return <option value="${safe}">${safe}</option>;
+    }).join("");
   }
 
-  // ===== Slots UI =====
-  const slotsWrap = $("slotsWrap");
-  const slotsGrid = $("slotsGrid");
-  const slotsSub  = $("slotsSub");
-  const horaHidden = $("horaHidden");
-  const horaManualWrap = $("horaManualWrap");
-  const horaManual = $("horaManual");
+  async function loadSlots(){
+    const barbero = (barberoSelect.value || "").trim();
+    const fecha = normalizeDateValue(fechaInput.value);
 
-  let selectedSlot = "";
-
-  function escapeHtml(str){
-    return String(str || "")
-      .replace(/&/g,"&amp;").replace(/</g,"&lt;")
-      .replace(/>/g,"&gt;").replace(/"/g,"&quot;")
-      .replace(/'/g,"&#039;");
-  }
-
-  function clearSelection(){
-    selectedSlot = "";
-    horaHidden.value = "";
-    horaManual.value = "";
-    hide($("pickedBadge"));
-    hide($("clearPick"));
-    $("pickedTime").textContent = "";
-    [...slotsGrid.querySelectorAll(".slotBtn")].forEach(b => b.classList.remove("selected"));
-  }
-
-  function pickSlot(time){
-    selectedSlot = time;
-    horaHidden.value = time;
-    $("pickedTime").textContent = time;
-    show($("pickedBadge"));
-    show($("clearPick"));
-    [...slotsGrid.querySelectorAll(".slotBtn")].forEach(b => {
-      b.classList.toggle("selected", b.dataset.time === time);
-    });
-  }
-
-  $("clearPick").addEventListener("click", clearSelection);
-
-  async function fetchSlots(barbero, fecha){
+    clearSelectedHour();
     slotsGrid.innerHTML = "";
-    slotsSub.textContent = "⏳ Cargando horarios…";
-    show(slotsWrap);
+    show(slotsCard);
+    hide(slotsEmpty);
+    show(slotsLoading);
 
-    const res = await send({ action: "getSlots", barbero, fecha });
+    if (!barbero || !fecha){
+      hide(slotsLoading);
+      show(slotsEmpty);
+      slotsEmpty.textContent = "Selecciona barbero y fecha para ver horarios.";
+      return;
+    }
 
-    if (!res || !res.ok) {
-      slotsSub.textContent = "❌ No se pudo cargar disponibilidad.";
+    const res = await send({ action:"getSlots", barbero, fecha });
+    hide(slotsLoading);
+
+    if (!res || !res.ok){
+      show(slotsEmpty);
+      slotsEmpty.textContent = "No se pudo cargar horarios. Intenta actualizar.";
       return;
     }
 
     const slots = Array.isArray(res.slots) ? res.slots : [];
-    if (slots.length === 0) {
-      slotsSub.textContent = "No hay horarios disponibles para esta fecha.";
+    if (!slots.length){
+      show(slotsEmpty);
+      slotsEmpty.textContent = "No hay horarios disponibles para esta fecha.";
       return;
     }
 
-    slotsSub.textContent = "Selecciona una hora:";
-    clearSelection();
+    hide(slotsEmpty);
+    slotsGrid.innerHTML = slots.map(h => {
+      const hh = String(h).trim();
+      return <button type="button" class="slotBtn" data-hour="${hh}">${hh}</button>;
+    }).join("");
 
-    // Render botones
-    slotsGrid.innerHTML = slots.map(t => `
-      <button type="button" class="slotBtn" data-time="${escapeHtml(t)}">${escapeHtml(t)}</button>
-    `).join("");
-
-    // Click handlers
-    [...slotsGrid.querySelectorAll(".slotBtn")].forEach(btn => {
-      btn.addEventListener("click", () => pickSlot(btn.dataset.time));
+    // click handlers
+    slotsGrid.querySelectorAll(".slotBtn").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        setSelectedHour(btn.getAttribute("data-hour"), btn);
+      });
     });
   }
 
-  function setModeByBarber(){
-    const b = String(barberoSel.value || "");
-    const isAny = (b === "Cualquiera");
+  $("refreshSlots").addEventListener("click", loadSlots);
+  barberoSelect.addEventListener("change", loadSlots);
+  fechaInput.addEventListener("change", loadSlots);
 
-    if (isAny) {
-      // Modo manual: el cliente escribe hora
-      hide(slotsWrap);
-      show(horaManualWrap);
-      horaManual.required = true;
-      horaHidden.required = false;
-      clearSelection();
-    } else {
-      // Modo disponibilidad (slots)
-      hide(horaManualWrap);
-      horaManual.required = false;
-      horaHidden.required = true;
-      maybeFetchSlots();
-    }
-  }
+  // Cargar barberos al inicio
+  loadBarbers();
 
-  async function maybeFetchSlots(){
-    const barbero = String(barberoSel.value || "").trim();
-    const fecha = String(fechaSel.value || "").trim();
-
-    if (!barbero || barbero === "Cualquiera") return;
-    if (!fecha) return;
-
-    await fetchSlots(barbero, fecha);
-  }
-
-  barberoSel.addEventListener("change", setModeByBarber);
-  fechaSel.addEventListener("change", maybeFetchSlots);
-  $("refreshSlots").addEventListener("click", maybeFetchSlots);
-
-  // ===== Envío =====
-  let sending = false;
+  // ---------------------------
+  //  SUBMIT (RESERVA con validación de disponibilidad)
+  // ---------------------------
+  let sendingLock = false;
 
   $("citaForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // candado por sesión (por si recargan o intentan varias veces)
     if (sessionStorage.getItem("booking_sending") === "1") {
       alert("⏳ Tu solicitud ya se está enviando. Por favor espera unos segundos.");
       return;
     }
-    if (sending) return;
+    if (sendingLock) return;
 
     hide($("statusOk"));
     hide($("statusErr"));
     hide($("statusSending"));
 
+    // validar hora seleccionada
+    if (!$("horaHidden").value){
+      show($("statusErr"));
+      $("statusErr").textContent = "❌ Debes seleccionar un horario disponible.";
+      return;
+    }
+
     const btn = $("submitBtn");
     const text = $("submitText");
     const spin = $("spinner");
 
-    sending = true;
+    // UI “enviando…”
+    sendingLock = true;
     sessionStorage.setItem("booking_sending", "1");
 
     btn.disabled = true;
@@ -672,37 +621,20 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const fd = new FormData(e.target);
 
-      const barbero = (fd.get("barbero") || "").toString().trim();
-      const fecha = (fd.get("fecha") || "").toString().trim();
-
-      // Hora: viene de slots (hidden) o manual (si Cualquiera)
-      const hora = barbero === "Cualquiera"
-        ? (horaManual.value || "").trim()
-        : (horaHidden.value || "").trim();
-
-      if (!barbero) throw new Error("Selecciona un peluquero.");
-      if (!fecha) throw new Error("Selecciona una fecha.");
-      if (!hora) throw new Error("Selecciona una hora disponible.");
-
-      const payloadBase = {
-        nombre: (fd.get("nombre")||"").toString().trim(),
-        celular: (fd.get("celular")||"").toString().trim(),
-        email: (fd.get("email")||"").toString().trim(),
-        barbero,
-        fecha,
-        hora,
-        pago: (fd.get("pago")||"").toString(),
-        presupuesto: (fd.get("presupuesto")||"").toString(),
-        descripcion: (fd.get("descripcion")||"").toString().trim(),
+      const payload = {
+        action: "book", // ✅ IMPORTANTE: usa disponibilidad + marca RESERVADO
+        nombre: (fd.get("nombre")||"").trim(),
+        celular: (fd.get("celular")||"").trim(),
+        email: (fd.get("email")||"").trim(),
+        barbero: (fd.get("barbero")||"").trim(),
+        fecha: (fd.get("fecha")||"").trim(),
+        hora: (fd.get("hora")||"").trim(), // viene del hidden
+        pago: fd.get("pago"),
+        presupuesto: fd.get("presupuesto"),
+        descripcion: (fd.get("descripcion")||"").trim(),
         fotos: await filesToBase64(),
         source: "web"
       };
-
-      // Si NO es "Cualquiera" => reservar con disponibilidad (action: book)
-      // Si es "Cualquiera" => usa el flujo normal (sin disponibilidad)
-      const payload = (barbero === "Cualquiera")
-        ? payloadBase
-        : { action: "book", ...payloadBase };
 
       const res = await send(payload);
 
@@ -710,8 +642,10 @@ document.addEventListener("DOMContentLoaded", () => {
         hide($("statusSending"));
         show($("statusOk"));
         e.target.reset();
-        clearSelection();
-        // liberar candado luego de 2s
+        clearSelectedHour();
+        hide(slotsCard);
+
+        // dejar el candado 2s y luego liberar (evita doble click impulsivo)
         setTimeout(()=>sessionStorage.removeItem("booking_sending"), 2000);
       } else {
         hide($("statusSending"));
@@ -723,10 +657,10 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       hide($("statusSending"));
       show($("statusErr"));
-      $("statusErr").textContent = "❌ " + (err && err.message ? err.message : "Error de red. Intenta nuevamente.");
+      $("statusErr").textContent = "❌ Error de red. Intenta nuevamente.";
       sessionStorage.removeItem("booking_sending");
     } finally {
-      sending = false;
+      sendingLock = false;
       btn.disabled = false;
       btn.style.opacity = "1";
       text.textContent = "Enviar solicitud";
