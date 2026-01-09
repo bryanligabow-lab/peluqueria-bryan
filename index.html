@@ -7,7 +7,6 @@
 
   <style>
     :root{
-      /* Tema: Negro + Dorado */
       --bg:#07090d;
       --card:rgba(17,24,39,.82);
       --line:rgba(255,255,255,.12);
@@ -22,37 +21,55 @@
 
       --ok:#22c55e;
       --err:#ef4444;
+
+      --shadow:0 18px 60px rgba(0,0,0,.40);
     }
 
     *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto}
     body{
       margin:0; min-height:100vh;
-      background:
-        radial-gradient(900px 600px at 20% 10%, rgba(212,175,55,.18), transparent 55%),
-        radial-gradient(900px 600px at 90% 20%, rgba(59,130,246,.10), transparent 55%),
-        var(--bg);
+      background: var(--bg);
       color:var(--text);
       display:flex; justify-content:center; align-items:center;
       padding:20px;
+      overflow-x:hidden;
     }
 
-    .wrap{max-width:920px;width:100%}
+    /* Fondo animado pro */
+    .bgFX{
+      position:fixed; inset:-40px;
+      pointer-events:none;
+      background:
+        radial-gradient(900px 600px at 20% 10%, rgba(212,175,55,.20), transparent 60%),
+        radial-gradient(900px 600px at 85% 15%, rgba(59,130,246,.12), transparent 60%),
+        radial-gradient(800px 520px at 45% 95%, rgba(34,197,94,.10), transparent 60%);
+      filter: blur(0px);
+      animation: floatGlow 10s ease-in-out infinite alternate;
+      opacity:.95;
+    }
+    @keyframes floatGlow{
+      0%{ transform: translate3d(0,0,0) scale(1); filter: blur(0px); }
+      100%{ transform: translate3d(0,-18px,0) scale(1.03); filter: blur(1px); }
+    }
+
+    .wrap{max-width:920px;width:100%; position:relative; z-index:2}
     .card{
       background:var(--card);
       border:1px solid var(--line);
       border-radius:var(--radius);
       padding:22px;
       margin-bottom:16px;
-      box-shadow:0 18px 60px rgba(0,0,0,.40);
-      backdrop-filter: blur(10px);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(12px);
     }
 
     .brand{
-      display:flex; align-items:center; gap:12px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
       margin-bottom:10px;
     }
+    .brandLeft{display:flex; align-items:center; gap:12px;}
     .logoBox{
-      width:58px; height:58px;
+      width:60px; height:60px;
       border-radius:16px;
       overflow:hidden;
       border:1px solid rgba(212,175,55,.40);
@@ -63,7 +80,21 @@
     .logoBox img{width:100%;height:100%;object-fit:cover;display:block}
 
     h1{margin:0 0 4px;font-size:26px;letter-spacing:.2px}
-    .subtitle{margin:0 0 12px;color:var(--muted)}
+    .subtitle{margin:0;color:var(--muted)}
+
+    .pill{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(212,175,55,.28);
+      background:rgba(212,175,55,.10);
+      color:rgba(249,250,251,.92);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+      white-space:nowrap;
+    }
 
     .btn{
       width:100%;
@@ -78,14 +109,25 @@
       justify-content:center;
       gap:8px;
       text-decoration:none;
+      transition: transform .06s ease, opacity .2s ease, filter .2s ease;
     }
+    .btn:active{ transform: translateY(1px); }
     .primary{
       background:linear-gradient(135deg,var(--gold),var(--gold2));
       color:#1a1406;
       border-color:rgba(212,175,55,.45);
+      box-shadow: 0 10px 28px rgba(212,175,55,.15);
     }
     .secondary{background:rgba(51,65,85,.40);color:white}
     .ghost{background:none;color:var(--muted)}
+    .outline{
+      background:rgba(255,255,255,.02);
+      color:rgba(249,250,251,.92);
+      border:1px solid rgba(255,255,255,.16);
+    }
+
+    .row2{display:grid;grid-template-columns:1fr 1fr; gap:12px;}
+    @media(max-width:720px){.row2{grid-template-columns:1fr}}
 
     label{font-size:13px;margin-top:12px;display:block}
     input,select,textarea{
@@ -106,132 +148,174 @@
     .hint{font-size:11.5px;color:rgba(249,250,251,.60);margin-top:6px}
     .small{font-size:12.5px;line-height:1.45;color:rgba(249,250,251,.66);margin-top:12px}
 
+    .divider{height:1px;background:rgba(255,255,255,.10);margin:14px 0}
+
     .status{display:none;margin-top:12px;padding:10px 12px;border-radius:12px;font-weight:900}
     .ok{background:rgba(34,197,94,.20);border:1px solid rgba(34,197,94,.45)}
     .err{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.45)}
+    .sending{
+      background:rgba(212,175,55,.16);
+      border:1px solid rgba(212,175,55,.38);
+      color:rgba(249,250,251,.92);
+    }
+
+    /* Spinner real */
+    .spin{
+      width:16px;height:16px;border-radius:50%;
+      border:2px solid rgba(26,20,6,.35);
+      border-top-color:#1a1406;
+      display:inline-block;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .topLinks{
+      display:flex; gap:10px; flex-wrap:wrap;
+      justify-content:flex-end;
+    }
   </style>
 </head>
 
 <body>
-<div class="wrap">
+  <div class="bgFX"></div>
 
-  <!-- CARD PRINCIPAL -->
-  <div class="card">
-    <div class="brand">
-      <div class="logoBox">
-  <img
-    src="https://i.imgur.com/8vFlXQw.png"
-    alt="Logo Peluquería de Bryan"
-    onerror="this.style.display='none'; this.parentElement.textContent='Peluquería de Bryan';"
-  />
-</div>
+  <div class="wrap">
 
-      <div>
-        <h1>Peluquería de Bryan</h1>
-        <p class="subtitle">Reserva tu cita en segundos</p>
-      </div>
-    </div>
-
-    <a id="btnHoy" class="btn primary" href="#" target="_blank" rel="noopener">
-      ✅ Agendar HOY por WhatsApp
-    </a>
-
-    <button id="openForm" class="btn secondary" type="button">
-      📅 Agendar OTRO DÍA (web)
-    </button>
-
-    <div class="small">
-      📍 Dirección del local <br>
-      🕒 Lun–Sáb | 09:00–20:00
-    </div>
-  </div>
-
-  <!-- FORMULARIO -->
-  <div id="formCard" class="card" style="display:none">
-    <h2 style="margin:0 0 6px;font-size:18px;">Formulario de cita</h2>
-    <p style="margin:0 0 10px;color:rgba(249,250,251,.70);font-size:13px;">
-      Completa tus datos. Te confirmaremos por WhatsApp.
-    </p>
-
-    <form id="citaForm">
-      <div class="grid">
-        <div>
-          <label>Nombre y apellido *</label>
-          <input name="nombre" required placeholder="Ej: Bryan Carrión">
+    <!-- CARD PRINCIPAL -->
+    <div class="card">
+      <div class="brand">
+        <div class="brandLeft">
+          <div class="logoBox">
+            <img
+              src="https://i.imgur.com/8vFlXQw.png"
+              alt="Logo Peluquería de Bryan"
+              onerror="this.style.display='none'; this.parentElement.textContent='Peluquería de Bryan';"
+            />
+          </div>
+          <div>
+            <h1>Peluquería de Bryan</h1>
+            <p class="subtitle">Reserva tu cita en segundos</p>
+          </div>
         </div>
 
-        <div>
-          <label>Celular (WhatsApp) *</label>
-          <input name="celular" required placeholder="Ej: 5939XXXXXXXX">
-          <div class="hint">Con código de país (593...).</div>
-        </div>
-
-        <div>
-          <label>Correo electrónico *</label>
-          <input name="email" type="email" required placeholder="tucorreo@gmail.com">
-        </div>
-
-        <div>
-          <label>Peluquero *</label>
-          <select name="barbero" required>
-            <option value="">Selecciona…</option>
-            <option>Bryan</option>
-            <option>Cualquiera</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Fecha *</label>
-          <input name="fecha" type="date" required>
-        </div>
-
-        <div>
-          <label>Hora *</label>
-          <input name="hora" type="time" required>
-        </div>
-
-        <div>
-          <label>Método de pago *</label>
-          <select name="pago" required>
-            <option value="">Selecciona…</option>
-            <option>Efectivo</option>
-            <option>Transferencia</option>
-          </select>
-        </div>
-
-        <div>
-          <label>Presupuesto (USD) *</label>
-          <input name="presupuesto" type="number" min="0" step="0.01" required placeholder="Ej: 15">
+        <div class="topLinks">
+          <a class="btn outline" style="margin-top:0; width:auto; padding:10px 12px;"
+             href="https://instagram.com/Bryann.carrion" target="_blank" rel="noopener">
+            📸 Instagram <span class="pill" style="border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.06)"> @Bryann.carrion</span>
+          </a>
         </div>
       </div>
 
-      <label>Descripción breve *</label>
-      <textarea name="descripcion" required placeholder="Ej: low fade, barba perfilada..."></textarea>
+      <div class="divider"></div>
 
-      <label>Fotos (opcional, máx 3)</label>
-      <input id="fotos" type="file" accept="image/*" multiple>
-      <div class="hint">Consejo: fotos ligeras (ideal &lt; 2MB). Máximo 3.</div>
+      <a id="btnHoy" class="btn primary" href="#" target="_blank" rel="noopener">
+        ✅ Agendar HOY por WhatsApp
+      </a>
 
-     <button id="submitBtn" class="btn primary" type="submit">
-  <span id="submitText">Enviar solicitud</span>
-  <span id="spinner" style="display:none;margin-left:8px;">⏳</span>
-</button>
-<div id="statusSending" class="status" style="display:none;background:rgba(212,175,55,.16);border:1px solid rgba(212,175,55,.38);">
-  ⏳ Enviando solicitud… por favor espera (puede tardar 5–15s). No cierres esta página.
-</div>
+      <div class="row2">
+        <button id="openForm" class="btn secondary" type="button">
+          📅 Agendar OTRO DÍA (web)
+        </button>
+        <a id="btnMaps" class="btn outline" href="#" target="_blank" rel="noopener">
+          📍 Cómo llegar (Maps)
+        </a>
+      </div>
 
-      <button id="backHome" class="btn ghost" type="button">⬅ Volver</button>
-
-      <div id="statusOk" class="status ok">✅ Solicitud enviada correctamente.</div>
-      <div id="statusErr" class="status err">❌ Error al enviar.</div>
-    </form>
-
-    <div class="small">
-      Al enviar, aceptas que te contactemos por WhatsApp para confirmar disponibilidad.
+      <div class="small">
+        🕒 Lun–Sáb | 09:00–20:00 <br>
+        ✅ Te confirmamos disponibilidad por WhatsApp y correo.
+      </div>
     </div>
-  </div>
 
-</div>
+    <!-- FORMULARIO -->
+    <div id="formCard" class="card" style="display:none">
+      <h2 style="margin:0 0 6px;font-size:18px;">Formulario de cita</h2>
+      <p style="margin:0 0 10px;color:rgba(249,250,251,.70);font-size:13px;">
+        Completa tus datos. Te confirmaremos por WhatsApp.
+      </p>
+
+      <div class="divider"></div>
+
+      <form id="citaForm" autocomplete="on">
+        <div class="grid">
+          <div>
+            <label>Nombre y apellido *</label>
+            <input name="nombre" required placeholder="Ej: Isaac Cabrera">
+          </div>
+
+          <div>
+            <label>Celular (WhatsApp) *</label>
+            <input name="celular" required placeholder="Ej: 5939XXXXXXXX" inputmode="numeric">
+            <div class="hint">Con código de país (593...).</div>
+          </div>
+
+          <div>
+            <label>Correo electrónico *</label>
+            <input name="email" type="email" required placeholder="tucorreo@gmail.com">
+          </div>
+
+          <div>
+            <label>Peluquero *</label>
+            <select name="barbero" required>
+              <option value="">Selecciona…</option>
+              <option>Bryan</option>
+              <option>Cualquiera</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Fecha *</label>
+            <input name="fecha" type="date" required>
+          </div>
+
+          <div>
+            <label>Hora *</label>
+            <input name="hora" type="time" required>
+          </div>
+
+          <div>
+            <label>Método de pago *</label>
+            <select name="pago" required>
+              <option value="">Selecciona…</option>
+              <option>Efectivo</option>
+              <option>Transferencia</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Presupuesto (USD) *</label>
+            <input name="presupuesto" type="number" min="0" step="0.01" required placeholder="Ej: 15">
+          </div>
+        </div>
+
+        <label>Descripción breve *</label>
+        <textarea name="descripcion" required placeholder="Ej: low fade, barba perfilada..."></textarea>
+
+        <label>Fotos (opcional, máx 3)</label>
+        <input id="fotos" type="file" accept="image/*" multiple>
+        <div class="hint">Consejo: fotos ligeras (ideal &lt; 2MB). Máximo 3.</div>
+
+        <button id="submitBtn" class="btn primary" type="submit">
+          <span id="submitText">Enviar solicitud</span>
+          <span id="spinner" style="display:none;"><span class="spin"></span></span>
+        </button>
+
+        <div id="statusSending" class="status sending">
+          ⏳ Enviando solicitud… por favor espera (puede tardar 5–15s). No cierres esta página.
+        </div>
+
+        <button id="backHome" class="btn ghost" type="button">⬅ Volver</button>
+
+        <div id="statusOk" class="status ok">✅ Solicitud enviada correctamente. Revisa tu correo (y WhatsApp) para la confirmación.</div>
+        <div id="statusErr" class="status err">❌ Error al enviar.</div>
+      </form>
+
+      <div class="small">
+        Al enviar, aceptas que te contactemos por WhatsApp para confirmar disponibilidad.
+      </div>
+    </div>
+
+  </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -242,11 +326,17 @@ document.addEventListener("DOMContentLoaded", () => {
   // ✅ Cambia al WhatsApp real del negocio
   const WHATSAPP_BUSINESS = "593999999999";
 
+  // ✅ Link Maps (pon tu dirección real si quieres)
+  const MAPS_LINK = "https://www.google.com/maps";
+
   const $ = (id)=>document.getElementById(id);
   const show = el => el.style.display="block";
   const hide = el => el.style.display="none";
 
-  // WhatsApp HOY
+  // Links
+  $("btnMaps").href = MAPS_LINK;
+
+  // WhatsApp HOY (mensaje prellenado)
   const d = new Date();
   const fechaHoy = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   const msgHoy = `Hola, quiero agendar una cita para HOY (${fechaHoy}).%0A%0ANombre:%20%0AServicio:%20%0AHora%20aprox:%20%0A`;
@@ -262,6 +352,9 @@ document.addEventListener("DOMContentLoaded", () => {
     hide($("formCard"));
     hide($("statusOk"));
     hide($("statusErr"));
+    hide($("statusSending"));
+    // liberar candado
+    sessionStorage.removeItem("booking_sending");
     window.scrollTo({top:0,behavior:"smooth"});
   };
 
@@ -296,84 +389,83 @@ document.addEventListener("DOMContentLoaded", () => {
     catch { return { ok:false, error:"Respuesta inválida del servidor" }; }
   }
 
-  // Submit
-let sending = false;
+  // ✅ Anti doble envío (extra) por sesión
+  let sending = false;
 
-$("citaForm").onsubmit = async (e) => {
-  e.preventDefault();
+  $("citaForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  if (sending) return; // ✅ evita doble submit por click/enter
-
-  hide($("statusOk"));
-  hide($("statusErr"));
-  hide($("statusSending"));
-
-  const btn = $("submitBtn");
-  const text = $("submitText");
-  const spin = $("spinner");
-
-  // ✅ UI “enviando…”
-  sending = true;
-  btn.disabled = true;
-  btn.style.opacity = "0.75";
-  text.textContent = "Enviando…";
-  show($("statusSending"));
-  spin.style.display = "inline";
-
-  try {
-    const fd = new FormData(e.target);
-
-    const payload = {
-      nombre: (fd.get("nombre")||"").trim(),
-      celular: (fd.get("celular")||"").trim(),
-      email: (fd.get("email")||"").trim(),
-      barbero: fd.get("barbero"),
-      fecha: fd.get("fecha"),
-      hora: fd.get("hora"),
-      pago: fd.get("pago"),
-      presupuesto: fd.get("presupuesto"),
-      descripcion: (fd.get("descripcion")||"").trim(),
-      fotos: await filesToBase64(),
-      source: "web"
-    };
-
-    const res = await send(payload);
-
-    if(res.ok){
-      hide($("statusSending"));
-      show($("statusOk"));
-      e.target.reset();
-    } else {
-      hide($("statusSending"));
-      show($("statusErr"));
-      $("statusErr").textContent = "❌ " + (res.error || "Error al enviar");
+    // candado por sesión (por si recargan o intentan varias veces)
+    if (sessionStorage.getItem("booking_sending") === "1") {
+      alert("⏳ Tu solicitud ya se está enviando. Por favor espera unos segundos.");
+      return;
     }
 
-  } catch (err) {
+    if (sending) return;
+
+    hide($("statusOk"));
+    hide($("statusErr"));
     hide($("statusSending"));
-    show($("statusErr"));
-    $("statusErr").textContent = "❌ Error de red. Intenta nuevamente.";
-  } finally {
-    // ✅ restaurar botón
-    sending = false;
-    btn.disabled = false;
-    btn.style.opacity = "1";
-    text.textContent = "Enviar solicitud";
-    spin.style.display = "none";
-  }
-};
 
+    const btn = $("submitBtn");
+    const text = $("submitText");
+    const spin = $("spinner");
 
-    const res = await send(payload);
+    // UI “enviando…”
+    sending = true;
+    sessionStorage.setItem("booking_sending", "1");
 
-    if(res.ok){
-      show($("statusOk"));
-      e.target.reset();
-    }else{
+    btn.disabled = true;
+    btn.style.opacity = "0.78";
+    text.textContent = "Enviando…";
+    show($("statusSending"));
+    spin.style.display = "inline";
+
+    try {
+      const fd = new FormData(e.target);
+
+      const payload = {
+        nombre: (fd.get("nombre")||"").trim(),
+        celular: (fd.get("celular")||"").trim(),
+        email: (fd.get("email")||"").trim(),
+        barbero: fd.get("barbero"),
+        fecha: fd.get("fecha"),
+        hora: fd.get("hora"),
+        pago: fd.get("pago"),
+        presupuesto: fd.get("presupuesto"),
+        descripcion: (fd.get("descripcion")||"").trim(),
+        fotos: await filesToBase64(),
+        source: "web"
+      };
+
+      const res = await send(payload);
+
+      if(res.ok){
+        hide($("statusSending"));
+        show($("statusOk"));
+        e.target.reset();
+        // dejar el candado 2s y luego liberar (evita doble click impulsivo)
+        setTimeout(()=>sessionStorage.removeItem("booking_sending"), 2000);
+      } else {
+        hide($("statusSending"));
+        show($("statusErr"));
+        $("statusErr").textContent = "❌ " + (res.error || "Error al enviar");
+        sessionStorage.removeItem("booking_sending");
+      }
+
+    } catch (err) {
+      hide($("statusSending"));
       show($("statusErr"));
-      $("statusErr").textContent = "❌ " + (res.error || "Error al enviar");
+      $("statusErr").textContent = "❌ Error de red. Intenta nuevamente.";
+      sessionStorage.removeItem("booking_sending");
+    } finally {
+      sending = false;
+      btn.disabled = false;
+      btn.style.opacity = "1";
+      text.textContent = "Enviar solicitud";
+      spin.style.display = "none";
     }
-  };
+  });
 
 });
 </script>
