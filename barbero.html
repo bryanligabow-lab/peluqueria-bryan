@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panel Barberos - Peluquería de Bryan</title>
+  <style>
+    :root{
+      --bg:#07090d;
+      --card:rgba(17,24,39,.82);
+      --line:rgba(255,255,255,.12);
+      --text:#F9FAFB;
+      --muted:rgba(249,250,251,.70);
+      --gold:#d4af37;
+      --gold2:#b88a10;
+      --ok:#22c55e;
+      --err:#ef4444;
+      --shadow:0 18px 60px rgba(0,0,0,.40);
+      --radius:18px;
+    }
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto}
+    body{
+      margin:0; min-height:100vh;
+      background:var(--bg);
+      color:var(--text);
+      display:flex; justify-content:center;
+      padding:18px;
+    }
+    .bgFX{
+      position:fixed; inset:-60px;
+      pointer-events:none;
+      background:
+        radial-gradient(900px 600px at 20% 10%, rgba(212,175,55,.22), transparent 60%),
+        radial-gradient(900px 600px at 85% 15%, rgba(59,130,246,.12), transparent 60%),
+        radial-gradient(800px 520px at 45% 95%, rgba(34,197,94,.10), transparent 60%);
+      animation: floatGlow 10s ease-in-out infinite alternate;
+      opacity:.95;
+    }
+    @keyframes floatGlow{
+      0%{ transform: translate3d(0,0,0) scale(1); filter: blur(0px); }
+      100%{ transform: translate3d(0,-18px,0) scale(1.03); filter: blur(1px); }
+    }
+
+    .wrap{max-width:1080px;width:100%; position:relative; z-index:2}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(12px);
+      margin-bottom:14px;
+    }
+
+    .top{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .title{
+      display:flex; gap:10px; align-items:center;
+    }
+    .badge{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(212,175,55,.28);
+      background:rgba(212,175,55,.10);
+      color:rgba(249,250,251,.92);
+      user-select:none;
+    }
+    .btn{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px 12px;
+      font-weight:900;
+      cursor:pointer;
+      background:rgba(255,255,255,.04);
+      color:var(--text);
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      justify-content:center;
+      text-decoration:none;
+      transition: transform .08s ease, filter .2s ease, opacity .2s ease;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+    .primary{
+      background:linear-gradient(135deg,var(--gold),var(--gold2));
+      color:#1a1406;
+      border-color:rgba(212,175,55,.45);
+    }
+    .danger{
+      background:rgba(239,68,68,.14);
+      border-color:rgba(239,68,68,.35);
+    }
+    .ok{
+      background:rgba(34,197,94,.14);
+      border-color:rgba(34,197,94,.35);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media(max-width:980px){ .grid{grid-template-columns:1fr} }
+
+    label{font-size:13px; display:block; margin-top:12px;}
+    input,select,textarea{
+      width:100%;
+      margin-top:6px;
+      padding:10px 11px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.25);
+      color:white;
+      outline:none;
+    }
+
+    .hint{font-size:12px;color:rgba(249,250,251,.65); margin-top:8px}
+    .muted{color:var(--muted)}
+    .divider{height:1px;background:rgba(255,255,255,.10);margin:12px 0}
+
+    .list{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+
+    .req{
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.03);
+      border-radius:16px;
+      padding:14px;
+    }
+    .reqTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .reqTitle{font-weight:1000;font-size:15px}
+    .chips{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    .chip{
+      font-size:12px; padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      color:rgba(249,250,251,.92);
+    }
+    .chip.pending{ border-color:rgba(212,175,55,.45); background:rgba(212,175,55,.10); }
+    .chip.accepted{ border-color:rgba(34,197,94,.45); background:rgba(34,197,94,.12); }
+    .chip.rejected{ border-color:rgba(239,68,68,.45); background:rgba(239,68,68,.12); }
+
+    .reqBody{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:12px;
+    }
+    @media(max-width:880px){ .reqBody{grid-template-columns:1fr} }
+
+    .kv{font-size:13px; line-height:1.5}
+    .kv b{color:rgba(249,250,251,.92)}
+    .actions{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; align-items:center;
+    }
+
+    .photos{
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .photoLink{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      font-weight:900;
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      color:rgba(249,250,251,.92);
+      text-decoration:none;
+    }
+
+    .statusBox{
+      display:none;
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      font-weight:900;
+    }
+    .statusOk{ border-color:rgba(34,197,94,.45); background:rgba(34,197,94,.12); }
+    .statusErr{ border-color:rgba(239,68,68,.45); background:rgba(239,68,68,.12); }
+  </style>
+</head>
+
+<body>
+  <div class="bgFX"></div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="top">
+        <div class="title">
+          <div style="width:44px;height:44px;border-radius:14px;border:1px solid rgba(212,175,55,.40);background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-weight:1000;">
+            💈
+          </div>
+          <div>
+            <div style="font-size:18px;font-weight:1000;">Panel de Barberos</div>
+            <div class="muted" style="font-size:13px;">Ver y gestionar citas pendientes (Aceptar / Rechazar)</div>
+          </div>
+          <span id="envBadge" class="badge">Conectando…</span>
+        </div>
+
+        <div class="actions">
+          <button id="btnRefresh" class="btn">🔄 Actualizar</button>
+          <button id="btnLogout" class="btn danger" style="display:none;">🚪 Salir</button>
+        </div>
+      </div>
+
+      <div id="statusGlobal" class="statusBox"></div>
+    </div>
+
+    <div class="grid">
+      <!-- LOGIN -->
+      <div class="card" id="loginCard">
+        <div style="font-weight:1000;font-size:15px;">🔐 Iniciar sesión</div>
+        <div class="hint">Cada barbero entra con su <b>nombre</b> y su <b>PIN</b>.</div>
+
+        <div class="divider"></div>
+
+        <label>Barbero</label>
+        <select id="barberoSelect">
+          <option value="">Cargando barberos…</option>
+        </select>
+
+        <label>PIN / Contraseña</label>
+        <input id="pinInput" type="password" placeholder="••••••" autocomplete="current-password">
+
+        <button id="btnLogin" class="btn primary" style="margin-top:14px; width:100%;">✅ Entrar</button>
+
+        <div class="hint">
+          Si no aparece un barbero aquí, revisa tu hoja <b>BARBEROS</b> (ACTIVO=SI).
+        </div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div class="card" id="dashCard" style="display:none;">
+        <div class="top">
+          <div>
+            <div style="font-size:15px;font-weight:1000;">📋 Solicitudes pendientes</div>
+            <div class="muted" style="font-size:13px;">Solo verás las citas asignadas a tu nombre.</div>
+          </div>
+          <div class="chips">
+            <span class="chip pending">Pendientes: <b id="pendingCount">0</b></span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div id="reqList" class="list"></div>
+
+        <div id="emptyState" class="muted" style="display:none; padding:14px 0;">
+          No tienes solicitudes pendientes por ahora.
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  // ✅ NO CAMBIAR: tu Web App Apps Script
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxWpXdGqiPiAuNb7c3-IKjisDpXn_6phyEstoYb2wGWq8GyA32a0fqbuKBCmQsuohWC/exec";
+
+  // ---------------------------
+  // Helpers UI
+  // ---------------------------
+  const $ = (id)=>document.getElementById(id);
+
+  const envBadge = $("envBadge");
+  const statusGlobal = $("statusGlobal");
+
+  const loginCard = $("loginCard");
+  const dashCard = $("dashCard");
+
+  const barberoSelect = $("barberoSelect");
+  const pinInput = $("pinInput");
+  const btnLogin = $("btnLogin");
+
+  const btnRefresh = $("btnRefresh");
+  const btnLogout = $("btnLogout");
+
+  const reqList = $("reqList");
+  const emptyState = $("emptyState");
+  const pendingCount = $("pendingCount");
+
+  function showStatus(msg, ok=true){
+    statusGlobal.style.display = "block";
+    statusGlobal.className = "statusBox " + (ok ? "statusOk" : "statusErr");
+    statusGlobal.textContent = msg;
+    setTimeout(()=>{ statusGlobal.style.display="none"; }, 4500);
+  }
+
+  // ---------------------------
+  // API (misma forma que tu web)
+  // ---------------------------
+  async function api(payload){
+    const r = await fetch(WEB_APP_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    const txt = await r.text();
+    try { return JSON.parse(txt); }
+    catch { return { ok:false, error:"Respuesta inválida del servidor" }; }
+  }
+
+  // ---------------------------
+  // Session (token)
+  // ---------------------------
+  const SESSION_KEY = "barber_session_v1";
+
+  function getSession(){
+    try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); }
+    catch { return null; }
+  }
+  function setSession(s){
+    localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+  }
+  function clearSession(){
+    localStorage.removeItem(SESSION_KEY);
+  }
+
+  function setLoggedUI(on){
+    loginCard.style.display = on ? "none" : "block";
+    dashCard.style.display = on ? "block" : "none";
+    btnLogout.style.display = on ? "inline-flex" : "none";
+  }
+
+  // ---------------------------
+  // Load barbers (reutiliza listBarbers existente)
+  // ---------------------------
+  async function loadBarbers(){
+    barberoSelect.innerHTML = `<option value="">Cargando barberos…</option>`;
+    barberoSelect.disabled = true;
+
+    const res = await api({ action:"listBarbers" });
+
+    if (!res || !res.ok) {
+      barberoSelect.innerHTML = `<option value="">No se pudo cargar</option>`;
+      barberoSelect.disabled = false;
+      envBadge.textContent = "Sin conexión";
+      showStatus("No se pudo conectar al servidor.", false);
+      return;
+    }
+
+    envBadge.textContent = "Conectado ✅";
+
+    const barbers = (res.barbers || []).filter(Boolean);
+    if (barbers.length === 0) {
+      barberoSelect.innerHTML = `<option value="">No hay barberos activos</option>`;
+      barberoSelect.disabled = false;
+      return;
+    }
+
+    barberoSelect.innerHTML =
+      `<option value="">Selecciona…</option>` +
+      barbers.map(b => `<option value="${String(b).replace(/"/g,'&quot;')}">${b}</option>`).join("");
+
+    barberoSelect.disabled = false;
+  }
+
+  // ---------------------------
+  // LOGIN
+  // Apps Script debe implementar action:"barberLogin"
+  // ---------------------------
+  async function login(){
+    const barber = (barberoSelect.value || "").trim();
+    const pin = (pinInput.value || "").trim();
+
+    if (!barber || !pin){
+      showStatus("Selecciona barbero y escribe tu PIN.", false);
+      return;
+    }
+
+    btnLogin.disabled = true;
+    btnLogin.textContent = "⏳ Verificando…";
+
+    const res = await api({ action:"barberLogin", barber, pin });
+
+    btnLogin.disabled = false;
+    btnLogin.textContent = "✅ Entrar";
+
+    if (!res || !res.ok){
+      showStatus(res?.error || "No se pudo iniciar sesión.", false);
+      return;
+    }
+
+    // Guarda token de sesión
+    setSession({
+      barber,
+      token: res.token,
+      ts: Date.now()
+    });
+
+    setLoggedUI(true);
+    showStatus("Sesión iniciada ✅");
+    await loadRequests();
+  }
+
+  // ---------------------------
+  // List requests
+  // Apps Script debe implementar action:"barberListRequests"
+  // ---------------------------
+  async function loadRequests(){
+    const sess = getSession();
+    if (!sess?.token || !sess?.barber) return;
+
+    reqList.innerHTML = "";
+    emptyState.style.display = "none";
+    pendingCount.textContent = "0";
+
+    btnRefresh.disabled = true;
+    btnRefresh.textContent = "⏳ Actualizando…";
+
+    const res = await api({
+      action: "barberListRequests",
+      token: sess.token,
+      barber: sess.barber
+    });
+
+    btnRefresh.disabled = false;
+    btnRefresh.textContent = "🔄 Actualizar";
+
+    if (!res || !res.ok){
+      showStatus(res?.error || "No se pudieron cargar las solicitudes.", false);
+      // Si el token expiró:
+      if ((res?.error || "").toLowerCase().includes("token")){
+        clearSession();
+        setLoggedUI(false);
+      }
+      return;
+    }
+
+    const items = Array.isArray(res.items) ? res.items : [];
+    pendingCount.textContent = String(items.length);
+
+    if (items.length === 0){
+      emptyState.style.display = "block";
+      return;
+    }
+
+    items.forEach(item => renderRequest(item));
+  }
+
+  function esc(s){ return String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+
+  function statusChip(status){
+    const st = String(status || "PENDIENTE").toUpperCase();
+    if (st.includes("ACEPT")) return `<span class="chip accepted">ACEPTADA</span>`;
+    if (st.includes("RECH")) return `<span class="chip rejected">RECHAZADA</span>`;
+    return `<span class="chip pending">PENDIENTE</span>`;
+  }
+
+  function renderRequest(item){
+    // Estructura esperada (la genera Apps Script):
+    // {
+    //   id, fecha, hora, nombre, celular, email, pago, presupuesto, descripcion,
+    //   barbero, status, createdAt, fotos:[{name,url}]
+    // }
+
+    const div = document.createElement("div");
+    div.className = "req";
+
+    const fotos = Array.isArray(item.fotos) ? item.fotos : [];
+    const fotosHtml = fotos.length
+      ? `<div class="photos">${fotos.map((f,i)=>`
+            <a class="photoLink" href="${esc(f.url)}" target="_blank" rel="noopener">🖼️ Foto ${i+1}</a>
+         `).join("")}</div>`
+      : `<div class="hint">Sin fotos adjuntas.</div>`;
+
+    div.innerHTML = `
+      <div class="reqTop">
+        <div>
+          <div class="reqTitle">👤 ${esc(item.nombre)} <span class="muted" style="font-weight:800;">(${esc(item.id)})</span></div>
+          <div class="muted" style="font-size:13px;margin-top:4px;">
+            📅 ${esc(item.fecha)} • 🕒 ${esc(item.hora)} • 💈 ${esc(item.barbero)}
+          </div>
+        </div>
+        <div class="chips">
+          ${statusChip(item.status)}
+          <span class="chip">💵 ${esc(item.pago || "-")} • $${esc(item.presupuesto || "-")}</span>
+        </div>
+      </div>
+
+      <div class="reqBody">
+        <div class="kv">
+          <div><b>Celular:</b> ${esc(item.celular)}</div>
+          <div><b>Email:</b> ${esc(item.email)}</div>
+          <div style="margin-top:8px;"><b>Descripción:</b><br>${esc(item.descripcion)}</div>
+          <div style="margin-top:10px;">${fotosHtml}</div>
+        </div>
+
+        <div>
+          <div class="actions">
+            <button class="btn ok" data-act="ACEPTAR">✅ Aceptar</button>
+            <button class="btn danger" data-act="RECHAZAR">⛔ Rechazar</button>
+          </div>
+          <div class="hint" style="margin-top:10px; text-align:right;">
+            Al aceptar/rechazar se actualiza en Sheets y se dispara el flujo.
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Actions
+    div.querySelectorAll("button[data-act]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const act = btn.getAttribute("data-act");
+        await updateRequest(item.id, act);
+      });
+    });
+
+    reqList.appendChild(div);
+  }
+
+  // ---------------------------
+  // Update request (Aceptar/Rechazar)
+  // Apps Script debe implementar action:"barberUpdateRequest"
+  // ---------------------------
+  async function updateRequest(id, decision){
+    const sess = getSession();
+    if (!sess?.token) {
+      showStatus("Sesión no válida. Inicia sesión otra vez.", false);
+      setLoggedUI(false);
+      return;
+    }
+
+    const ok = confirm(`¿Seguro que deseas ${decision} esta solicitud?`);
+    if (!ok) return;
+
+    const res = await api({
+      action: "barberUpdateRequest",
+      token: sess.token,
+      id,
+      decision // "ACEPTAR" | "RECHAZAR"
+    });
+
+    if (!res || !res.ok){
+      showStatus(res?.error || "No se pudo actualizar.", false);
+      return;
+    }
+
+    showStatus(`Solicitud ${decision} ✅`);
+    await loadRequests();
+  }
+
+  // ---------------------------
+  // Logout
+  // ---------------------------
+  async function logout(){
+    clearSession();
+    setLoggedUI(false);
+    pinInput.value = "";
+    showStatus("Sesión cerrada.");
+  }
+
+  btnLogin.addEventListener("click", login);
+  btnRefresh.addEventListener("click", loadRequests);
+  btnLogout.addEventListener("click", logout);
+
+  // Enter to login
+  pinInput.addEventListener("keydown", (e)=>{
+    if (e.key === "Enter") login();
+  });
+
+  // Boot
+  await loadBarbers();
+
+  const sess = getSession();
+  if (sess?.token && sess?.barber){
+    setLoggedUI(true);
+    await loadRequests();
+  } else {
+    setLoggedUI(false);
+  }
+});
+</script>
+</body>
+</html>
