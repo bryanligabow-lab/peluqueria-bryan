@@ -36,23 +36,25 @@
       overflow-x:hidden;
     }
 
-    /* ✅ Premium animated background */
+    /* =======================
+       PREMIUM BACKGROUND FX
+    ======================= */
     .bgFX{
-      position:fixed; inset:-60px;
+      position:fixed; inset:-70px;
       pointer-events:none;
       background:
-        radial-gradient(900px 600px at 18% 10%, rgba(212,175,55,.26), transparent 62%),
-        radial-gradient(950px 640px at 86% 18%, rgba(59,130,246,.12), transparent 65%),
+        radial-gradient(900px 600px at 15% 10%, rgba(212,175,55,.26), transparent 62%),
+        radial-gradient(950px 640px at 88% 18%, rgba(59,130,246,.12), transparent 65%),
         radial-gradient(900px 520px at 50% 102%, rgba(34,197,94,.10), transparent 58%),
         radial-gradient(520px 420px at 40% 35%, rgba(212,175,55,.10), transparent 55%),
         radial-gradient(560px 480px at 70% 60%, rgba(184,138,16,.08), transparent 55%);
-      animation: floatGlow 10s ease-in-out infinite alternate;
+      animation: floatGlow 11s ease-in-out infinite alternate;
       opacity:.98;
-      filter:saturate(1.1);
+      filter:saturate(1.12);
     }
     @keyframes floatGlow{
       0%{ transform: translate3d(0,0,0) scale(1); filter: blur(0px) saturate(1.06); }
-      100%{ transform: translate3d(0,-18px,0) scale(1.04); filter: blur(1px) saturate(1.18); }
+      100%{ transform: translate3d(0,-18px,0) scale(1.05); filter: blur(1px) saturate(1.20); }
     }
 
     /* Subtle grain overlay */
@@ -64,7 +66,36 @@
       mix-blend-mode:overlay;
     }
 
-    .wrap{max-width:920px;width:100%; position:relative; z-index:2}
+    /* Moving “barber pole” accent (decorative) */
+    .pole{
+      position:fixed;
+      top:-120px;
+      right:8%;
+      width:64px;
+      height:420px;
+      border-radius:999px;
+      background:
+        repeating-linear-gradient(
+          135deg,
+          rgba(212,175,55,.36) 0 16px,
+          rgba(255,255,255,.12) 16px 32px,
+          rgba(59,130,246,.10) 32px 48px,
+          rgba(212,175,55,.22) 48px 64px
+        );
+      filter: blur(.2px);
+      opacity:.26;
+      box-shadow: 0 24px 80px rgba(212,175,55,.12);
+      transform: rotate(12deg);
+      animation: poleMove 9s linear infinite;
+      pointer-events:none;
+    }
+    @keyframes poleMove{
+      0%   { background-position: 0 0; transform: translateY(0) rotate(12deg); }
+      50%  { transform: translateY(14px) rotate(12deg); }
+      100% { background-position: 0 220px; transform: translateY(0) rotate(12deg); }
+    }
+
+    .wrap{max-width:960px;width:100%; position:relative; z-index:2}
 
     .card{
       background:var(--card);
@@ -135,7 +166,7 @@
 
     .btn{
       width:100%;
-      padding:12px 14px;
+      padding:13px 14px;
       border-radius:14px;
       border:1px solid var(--line);
       font-weight:900;
@@ -169,13 +200,17 @@
     }
     .btn:hover::after{ left:120%; }
 
+    /* ✅ MAIN CTA */
     .primary{
       background:linear-gradient(135deg,var(--gold),var(--gold2));
       color:#1a1406;
       border-color:rgba(212,175,55,.45);
       box-shadow: 0 10px 28px rgba(212,175,55,.15);
+      padding:15px 16px;
+      font-size:16px;
+      letter-spacing:.2px;
     }
-    .primary:hover{ box-shadow: 0 14px 38px rgba(212,175,55,.18); filter:brightness(1.03); }
+    .primary:hover{ box-shadow: 0 16px 44px rgba(212,175,55,.18); filter:brightness(1.03); }
 
     .secondary{background:rgba(51,65,85,.40);color:white}
     .secondary:hover{ filter:brightness(1.05); }
@@ -311,27 +346,22 @@
       padding:10px 0;
     }
 
-    /* ✅ Smooth reveal animation for the form */
-    #formCard{
-      display:none;
-      opacity:0;
-      transform: translateY(10px);
-      transition: opacity .25s ease, transform .25s ease;
-    }
-    #formCard.open{
-      display:block;
-      opacity:1;
-      transform: translateY(0);
-    }
+    /* ✅ Smooth reveal animation for the form (NO rompe flujo) */
+    #formCard{ display:none; opacity:0; transform: translateY(10px); transition: opacity .25s ease, transform .25s ease; }
+    #formCard.open{ display:block; opacity:1; transform: translateY(0); }
   </style>
 </head>
 
 <body>
   <div class="bgFX"></div>
   <div class="grain"></div>
+  <div class="pole"></div>
 
   <div class="wrap">
 
+    <!-- =======================
+         HOME / LANDING
+    ======================= -->
     <div class="card">
       <div class="brand">
         <div class="brandLeft">
@@ -358,33 +388,35 @@
 
       <div class="divider"></div>
 
-      <!-- ✅ WhatsApp HOY -->
-      <a id="btnHoy" class="btn primary" href="#" target="_blank" rel="noopener">
-        ✅ Agendar HOY por WhatsApp
-      </a>
+      <!-- ✅ BOTÓN PRINCIPAL: AGENDAR CITA (WEB) -->
+      <button id="ctaAgendar" class="btn primary" type="button">
+        💈 Agendar Cita (Corte de pelo)
+      </button>
 
+      <!-- ✅ Secundarios: WhatsApp (solo chat / comentario) + Maps -->
       <div class="row2">
-        <!-- ✅ Renombrado: Agendar cita (corte) -->
-        <button id="openForm" class="btn secondary" type="button">
-          💈 Agendar Cita (Corte de pelo)
-        </button>
-
+        <a id="btnWhats" class="btn secondary" href="#" target="_blank" rel="noopener">
+          💬 Escríbenos por WhatsApp
+        </a>
         <a id="btnMaps" class="btn outline" href="#" target="_blank" rel="noopener">
           📍 Cómo llegar (Maps)
         </a>
       </div>
 
-      <!-- ✅ NUEVO: Comentarios por WhatsApp (simple, útil, cero complejo) -->
+      <!-- ✅ Comentario directo -->
       <a id="btnComent" class="btn outline" href="#" target="_blank" rel="noopener">
-        💬 Dejar comentario
+        ⭐ Dejar comentario
       </a>
 
       <div class="small">
         🕒 Lun–Sáb | 09:00–20:00 <br>
-        ✅ Selecciona un horario disponible y te llegará correo automático.
+        ✅ El agendamiento se realiza <b>solo por esta página</b>. Te llega confirmación por correo.
       </div>
     </div>
 
+    <!-- =======================
+         FORMULARIO
+    ======================= -->
     <div id="formCard" class="card">
       <h2 style="margin:0 0 6px;font-size:18px;">Formulario de cita (Corte de pelo)</h2>
       <p style="margin:0 0 10px;color:rgba(249,250,251,.70);font-size:13px;">
@@ -462,7 +494,7 @@
         </div>
 
         <label>Descripción breve *</label>
-        <textarea name="descripcion" required placeholder="Ej: corte low fade, taper, diseño, barba..."></textarea>
+        <textarea name="descripcion" required placeholder="Ej: corte low fade, taper, barba..."></textarea>
 
         <label>Fotos (opcional, máx 3)</label>
         <input id="fotos" type="file" accept="image/*" multiple>
@@ -493,14 +525,18 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-  // ✅ WebApp Apps Script
+  // ✅ WebApp Apps Script (NO TOCAR)
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxWpXdGqiPiAuNb7c3-IKjisDpXn_6phyEstoYb2wGWq8GyA32a0fqbuKBCmQsuohWC/exec";
 
-  // ✅ WhatsApp real del negocio (Ecuador)
+  // ✅ WhatsApp real del negocio
   const WHATSAPP_BUSINESS = "593968429494";
 
-  // ✅ Link Maps (puedes pegar aquí tu link exacto de Google Maps si quieres)
+  // ✅ Link Maps
   const MAPS_LINK = "https://www.google.com/maps";
+
+  // ✅ IMPORTANTE: WhatsApp ya NO agenda; solo informa / comentarios
+  // (Si quieres que WhatsApp “redirija” a la página, enviamos un mensaje con el link de esta página)
+  const PAGE_URL = window.location.href;
 
   const $ = (id)=>document.getElementById(id);
   const show = (el)=> el && (el.style.display="block");
@@ -508,9 +544,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // UI refs
   const btnMaps = $("btnMaps");
-  const btnHoy = $("btnHoy");
+  const btnWhats = $("btnWhats");
   const btnComent = $("btnComent");
-  const openForm = $("openForm");
+  const ctaAgendar = $("ctaAgendar");
+
   const formCard = $("formCard");
   const backHome = $("backHome");
 
@@ -538,25 +575,23 @@ document.addEventListener("DOMContentLoaded", () => {
   // Links
   if (btnMaps) btnMaps.href = MAPS_LINK;
 
-  // ✅ WhatsApp HOY
-  if (btnHoy) {
-    const d = new Date();
-    const fechaHoy = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-    const msg = `Hola 👋, quiero agendar una cita para HOY (${fechaHoy}) para un CORTE DE CABELLO. ¿Qué horarios tienen disponibles?`;
-    btnHoy.href = `https://wa.me/${WHATSAPP_BUSINESS}?text=${encodeURIComponent(msg)}`;
+  // ✅ WhatsApp: solo “Escríbenos” con link para agendar en la web
+  if (btnWhats) {
+    const msg = `Hola 👋. Quiero información. Para agendar mi cita usaré esta página: ${PAGE_URL}`;
+    btnWhats.href = `https://wa.me/${WHATSAPP_BUSINESS}?text=${encodeURIComponent(msg)}`;
   }
 
-  // ✅ Comentarios (simple y efectivo)
+  // ✅ Comentarios: WhatsApp
   if (btnComent) {
-    const msgC = `Hola 👋, quiero dejar un comentario / sugerencia sobre el servicio.`;
+    const msgC = `Hola ⭐. Quiero dejar un comentario / sugerencia. (Agendamiento solo por la web) ${PAGE_URL}`;
     btnComent.href = `https://wa.me/${WHATSAPP_BUSINESS}?text=${encodeURIComponent(msgC)}`;
   }
 
-  // --- Open / close form (premium animation) ---
+  // --- Open / close form (no rompe flujo) ---
   function openFormUI(){
     if (!formCard) return;
     formCard.classList.add("open");
-    setTimeout(()=>formCard.scrollIntoView({behavior:"smooth", block:"start"}), 60);
+    setTimeout(()=>formCard.scrollIntoView({behavior:"smooth", block:"start"}), 70);
   }
   function closeFormUI(){
     if (!formCard) return;
@@ -568,18 +603,10 @@ document.addEventListener("DOMContentLoaded", () => {
     window.scrollTo({top:0, behavior:"smooth"});
   }
 
-  if (openForm && formCard) {
-    openForm.addEventListener("click", (e) => {
-      e.preventDefault();
-      openFormUI();
-    });
-  }
+  if (ctaAgendar) ctaAgendar.addEventListener("click", openFormUI);
+  if (backHome) backHome.addEventListener("click", closeFormUI);
 
-  if (backHome && formCard) {
-    backHome.addEventListener("click", closeFormUI);
-  }
-
-  // --- API helper ---
+  // --- API helper (NO CAMBIAR) ---
   async function api(payload){
     const r = await fetch(WEB_APP_URL,{
       method:"POST",
@@ -680,7 +707,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function loadSlots(){
     const barbero = (selBarbero?.value || "").trim();
-    const fecha = (inpFecha?.value || "").trim(); // yyyy-mm-dd
+    const fecha = (inpFecha?.value || "").trim();
 
     if (!barbero || !fecha) {
       hide(slotsCard);
@@ -721,7 +748,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return out;
   }
 
-  // Envío reserva
+  // Envío reserva (NO CAMBIAR estructura)
   let sending = false;
 
   if (citaForm) {
@@ -761,7 +788,7 @@ document.addEventListener("DOMContentLoaded", () => {
           descripcion: (fd.get("descripcion")||"").trim(),
           fotos: await filesToBase64(),
           source: "web",
-          servicio: "CORTE_DE_CABELLO" // ✅ etiqueta (no rompe tu backend)
+          servicio: "CORTE_DE_CABELLO"
         };
 
         const res = await api(payload);
@@ -793,7 +820,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Inicial
   loadBarbers();
 
-  // ✅ Form empieza cerrado con animación lista
+  // Form inicia cerrado
   if (formCard) formCard.classList.remove("open");
 });
 </script>
