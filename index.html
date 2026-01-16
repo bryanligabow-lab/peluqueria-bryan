@@ -541,15 +541,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // ✅ WhatsApp HOY
   if (btnHoy) {
     const d = new Date();
-    const fechaHoy = ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")};
-    const msg = Hola 👋, quiero agendar una cita para HOY (${fechaHoy}) para un CORTE DE CABELLO. ¿Qué horarios tienen disponibles?;
-    btnHoy.href = https://wa.me/${WHATSAPP_BUSINESS}?text=${encodeURIComponent(msg)};
+    const fechaHoy = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+    const msg = `Hola 👋, quiero agendar una cita para HOY (${fechaHoy}) para un CORTE DE CABELLO. ¿Qué horarios tienen disponibles?`;
+    btnHoy.href = `https://wa.me/${WHATSAPP_BUSINESS}?text=${encodeURIComponent(msg)}`;
   }
 
   // ✅ Comentarios (simple y efectivo)
   if (btnComent) {
-    const msgC = Hola 👋, quiero dejar un comentario / sugerencia sobre el servicio.;
-    btnComent.href = https://wa.me/${WHATSAPP_BUSINESS}?text=${encodeURIComponent(msgC)};
+    const msgC = `Hola 👋, quiero dejar un comentario / sugerencia sobre el servicio.`;
+    btnComent.href = `https://wa.me/${WHATSAPP_BUSINESS}?text=${encodeURIComponent(msgC)}`;
   }
 
   // --- Open / close form (premium animation) ---
@@ -595,13 +595,13 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadBarbers(){
     if (!selBarbero) return;
 
-    selBarbero.innerHTML = <option value="">Cargando barberos…</option>;
+    selBarbero.innerHTML = `<option value="">Cargando barberos…</option>`;
     selBarbero.disabled = true;
 
     const res = await api({ action:"listBarbers" });
 
     if (!res || !res.ok) {
-      selBarbero.innerHTML = <option value="">No se pudo cargar</option>;
+      selBarbero.innerHTML = `<option value="">No se pudo cargar</option>`;
       selBarbero.disabled = false;
       return;
     }
@@ -609,14 +609,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const barbers = (res.barbers || []).filter(Boolean);
 
     if (barbers.length === 0) {
-      selBarbero.innerHTML = <option value="">No hay barberos activos</option>;
+      selBarbero.innerHTML = `<option value="">No hay barberos activos</option>`;
       selBarbero.disabled = false;
       return;
     }
 
     selBarbero.innerHTML =
-      <option value="">Selecciona…</option> +
-      barbers.map(b => <option value="${String(b).replace(/"/g,'&quot;')}">${b}</option>).join("");
+      `<option value="">Selecciona…</option>` +
+      barbers.map(b => `<option value="${String(b).replace(/"/g,'&quot;')}">${b}</option>`).join("");
 
     selBarbero.disabled = false;
   }
