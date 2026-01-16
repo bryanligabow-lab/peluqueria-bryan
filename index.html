@@ -23,6 +23,7 @@
       --err:#ef4444;
 
       --shadow:0 18px 60px rgba(0,0,0,.40);
+      --shadowSoft:0 14px 46px rgba(0,0,0,.32);
     }
 
     *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto}
@@ -35,22 +36,36 @@
       overflow-x:hidden;
     }
 
+    /* ✅ Premium animated background */
     .bgFX{
-      position:fixed; inset:-40px;
+      position:fixed; inset:-60px;
       pointer-events:none;
       background:
-        radial-gradient(900px 600px at 20% 10%, rgba(212,175,55,.20), transparent 60%),
-        radial-gradient(900px 600px at 85% 15%, rgba(59,130,246,.12), transparent 60%),
-        radial-gradient(800px 520px at 45% 95%, rgba(34,197,94,.10), transparent 60%);
+        radial-gradient(900px 600px at 18% 10%, rgba(212,175,55,.26), transparent 62%),
+        radial-gradient(950px 640px at 86% 18%, rgba(59,130,246,.12), transparent 65%),
+        radial-gradient(900px 520px at 50% 102%, rgba(34,197,94,.10), transparent 58%),
+        radial-gradient(520px 420px at 40% 35%, rgba(212,175,55,.10), transparent 55%),
+        radial-gradient(560px 480px at 70% 60%, rgba(184,138,16,.08), transparent 55%);
       animation: floatGlow 10s ease-in-out infinite alternate;
-      opacity:.95;
+      opacity:.98;
+      filter:saturate(1.1);
     }
     @keyframes floatGlow{
-      0%{ transform: translate3d(0,0,0) scale(1); filter: blur(0px); }
-      100%{ transform: translate3d(0,-18px,0) scale(1.03); filter: blur(1px); }
+      0%{ transform: translate3d(0,0,0) scale(1); filter: blur(0px) saturate(1.06); }
+      100%{ transform: translate3d(0,-18px,0) scale(1.04); filter: blur(1px) saturate(1.18); }
+    }
+
+    /* Subtle grain overlay */
+    .grain{
+      position:fixed; inset:0;
+      pointer-events:none;
+      opacity:.08;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+      mix-blend-mode:overlay;
     }
 
     .wrap{max-width:920px;width:100%; position:relative; z-index:2}
+
     .card{
       background:var(--card);
       border:1px solid var(--line);
@@ -59,6 +74,28 @@
       margin-bottom:16px;
       box-shadow:var(--shadow);
       backdrop-filter: blur(12px);
+      transform: translateY(0);
+      transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+      position:relative;
+      overflow:hidden;
+    }
+
+    /* Premium border glow */
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: linear-gradient(120deg, rgba(212,175,55,.22), rgba(255,255,255,.06), rgba(59,130,246,.10), rgba(212,175,55,.16));
+      opacity:.45;
+      filter: blur(14px);
+      z-index:0;
+    }
+    .card > *{ position:relative; z-index:1; }
+
+    .card:hover{
+      transform: translateY(-2px);
+      box-shadow:var(--shadowSoft);
+      border-color: rgba(212,175,55,.22);
     }
 
     .brand{
@@ -66,14 +103,16 @@
       margin-bottom:10px;
     }
     .brandLeft{display:flex; align-items:center; gap:12px;}
+
     .logoBox{
       width:60px; height:60px;
       border-radius:16px;
       overflow:hidden;
-      border:1px solid rgba(212,175,55,.40);
+      border:1px solid rgba(212,175,55,.42);
       background:rgba(255,255,255,.06);
       display:flex; align-items:center; justify-content:center;
       flex:0 0 auto;
+      box-shadow: 0 10px 26px rgba(212,175,55,.12);
     }
     .logoBox img{width:100%;height:100%;object-fit:cover;display:block}
 
@@ -107,23 +146,47 @@
       justify-content:center;
       gap:8px;
       text-decoration:none;
-      transition: transform .06s ease, opacity .2s ease, filter .2s ease;
+      transition: transform .10s ease, opacity .2s ease, filter .2s ease, box-shadow .25s ease;
+      position:relative;
+      overflow:hidden;
+      will-change: transform;
     }
-    .btn:active{ transform: translateY(1px); }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+    .btn:disabled{opacity:.6; cursor:not-allowed}
+
+    /* Shine sweep effect */
+    .btn::after{
+      content:"";
+      position:absolute;
+      top:-40%;
+      left:-60%;
+      width:40%;
+      height:180%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+      transform: rotate(18deg);
+      transition: left .65s ease;
+      pointer-events:none;
+    }
+    .btn:hover::after{ left:120%; }
+
     .primary{
       background:linear-gradient(135deg,var(--gold),var(--gold2));
       color:#1a1406;
       border-color:rgba(212,175,55,.45);
       box-shadow: 0 10px 28px rgba(212,175,55,.15);
     }
+    .primary:hover{ box-shadow: 0 14px 38px rgba(212,175,55,.18); filter:brightness(1.03); }
+
     .secondary{background:rgba(51,65,85,.40);color:white}
+    .secondary:hover{ filter:brightness(1.05); }
+
     .ghost{background:none;color:var(--muted)}
     .outline{
       background:rgba(255,255,255,.02);
       color:rgba(249,250,251,.92);
       border:1px solid rgba(255,255,255,.16);
     }
-    .btn:disabled{opacity:.6; cursor:not-allowed}
+    .outline:hover{ filter:brightness(1.06); }
 
     .row2{display:grid;grid-template-columns:1fr 1fr; gap:12px;}
     @media(max-width:720px){.row2{grid-template-columns:1fr}}
@@ -138,6 +201,12 @@
       color:white;
       margin-top:6px;
       outline:none;
+      transition:border-color .2s ease, box-shadow .2s ease, filter .2s ease;
+    }
+    input:focus,select:focus,textarea:focus{
+      border-color: rgba(212,175,55,.42);
+      box-shadow: 0 0 0 4px rgba(212,175,55,.10);
+      filter:brightness(1.03);
     }
     textarea{min-height:92px;resize:vertical}
 
@@ -201,7 +270,11 @@
       border:1px solid rgba(255,255,255,.14);
       color:rgba(249,250,251,.92);
       cursor:pointer;
+      transition:filter .2s ease, transform .08s ease;
     }
+    .miniBtn:hover{ filter:brightness(1.08); }
+    .miniBtn:active{ transform: translateY(1px); }
+
     .slotGrid{
       display:grid;
       grid-template-columns: repeat(6, 1fr);
@@ -237,11 +310,25 @@
       font-size:12.5px;
       padding:10px 0;
     }
+
+    /* ✅ Smooth reveal animation for the form */
+    #formCard{
+      display:none;
+      opacity:0;
+      transform: translateY(10px);
+      transition: opacity .25s ease, transform .25s ease;
+    }
+    #formCard.open{
+      display:block;
+      opacity:1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 
 <body>
   <div class="bgFX"></div>
+  <div class="grain"></div>
 
   <div class="wrap">
 
@@ -271,18 +358,26 @@
 
       <div class="divider"></div>
 
+      <!-- ✅ WhatsApp HOY -->
       <a id="btnHoy" class="btn primary" href="#" target="_blank" rel="noopener">
         ✅ Agendar HOY por WhatsApp
       </a>
 
       <div class="row2">
+        <!-- ✅ Renombrado: Agendar cita (corte) -->
         <button id="openForm" class="btn secondary" type="button">
-          📅 Agendar OTRO DÍA (web)
+          💈 Agendar Cita (Corte de pelo)
         </button>
+
         <a id="btnMaps" class="btn outline" href="#" target="_blank" rel="noopener">
           📍 Cómo llegar (Maps)
         </a>
       </div>
+
+      <!-- ✅ NUEVO: Comentarios por WhatsApp (simple, útil, cero complejo) -->
+      <a id="btnComent" class="btn outline" href="#" target="_blank" rel="noopener">
+        💬 Dejar comentario
+      </a>
 
       <div class="small">
         🕒 Lun–Sáb | 09:00–20:00 <br>
@@ -290,8 +385,8 @@
       </div>
     </div>
 
-    <div id="formCard" class="card" style="display:none">
-      <h2 style="margin:0 0 6px;font-size:18px;">Formulario de cita</h2>
+    <div id="formCard" class="card">
+      <h2 style="margin:0 0 6px;font-size:18px;">Formulario de cita (Corte de pelo)</h2>
       <p style="margin:0 0 10px;color:rgba(249,250,251,.70);font-size:13px;">
         Completa tus datos y selecciona una hora disponible.
       </p>
@@ -346,7 +441,6 @@
 
           <div>
             <label>Hora seleccionada *</label>
-
             <input id="horaDisplay" type="text" placeholder="Elige un horario abajo" readonly>
             <input id="horaHidden" name="hora" type="hidden" required>
           </div>
@@ -368,7 +462,7 @@
         </div>
 
         <label>Descripción breve *</label>
-        <textarea name="descripcion" required placeholder="Ej: low fade, barba perfilada..."></textarea>
+        <textarea name="descripcion" required placeholder="Ej: corte low fade, taper, diseño, barba..."></textarea>
 
         <label>Fotos (opcional, máx 3)</label>
         <input id="fotos" type="file" accept="image/*" multiple>
@@ -402,10 +496,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // ✅ WebApp Apps Script
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxWpXdGqiPiAuNb7c3-IKjisDpXn_6phyEstoYb2wGWq8GyA32a0fqbuKBCmQsuohWC/exec";
 
-  // ✅ Cambia al WhatsApp real del negocio
-  const WHATSAPP_BUSINESS = "593999999999";
+  // ✅ WhatsApp real del negocio (Ecuador)
+  const WHATSAPP_BUSINESS = "593968429494";
 
-  // ✅ Link Maps
+  // ✅ Link Maps (puedes pegar aquí tu link exacto de Google Maps si quieres)
   const MAPS_LINK = "https://www.google.com/maps";
 
   const $ = (id)=>document.getElementById(id);
@@ -415,6 +509,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // UI refs
   const btnMaps = $("btnMaps");
   const btnHoy = $("btnHoy");
+  const btnComent = $("btnComent");
   const openForm = $("openForm");
   const formCard = $("formCard");
   const backHome = $("backHome");
@@ -443,35 +538,48 @@ document.addEventListener("DOMContentLoaded", () => {
   // Links
   if (btnMaps) btnMaps.href = MAPS_LINK;
 
-  // WhatsApp HOY
+  // ✅ WhatsApp HOY
   if (btnHoy) {
     const d = new Date();
-    const fechaHoy = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
-    const msg = `Hola, quiero agendar una cita para HOY (${fechaHoy}).`;
-    btnHoy.href = `https://wa.me/${WHATSAPP_BUSINESS}?text=${encodeURIComponent(msg)}`;
+    const fechaHoy = ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")};
+    const msg = Hola 👋, quiero agendar una cita para HOY (${fechaHoy}) para un CORTE DE CABELLO. ¿Qué horarios tienen disponibles?;
+    btnHoy.href = https://wa.me/${WHATSAPP_BUSINESS}?text=${encodeURIComponent(msg)};
   }
 
-  // Abrir / cerrar formulario (blindado)
+  // ✅ Comentarios (simple y efectivo)
+  if (btnComent) {
+    const msgC = Hola 👋, quiero dejar un comentario / sugerencia sobre el servicio.;
+    btnComent.href = https://wa.me/${WHATSAPP_BUSINESS}?text=${encodeURIComponent(msgC)};
+  }
+
+  // --- Open / close form (premium animation) ---
+  function openFormUI(){
+    if (!formCard) return;
+    formCard.classList.add("open");
+    setTimeout(()=>formCard.scrollIntoView({behavior:"smooth", block:"start"}), 60);
+  }
+  function closeFormUI(){
+    if (!formCard) return;
+    formCard.classList.remove("open");
+    hide(statusOk);
+    hide(statusErr);
+    hide(statusSending);
+    sessionStorage.removeItem("booking_sending");
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
   if (openForm && formCard) {
     openForm.addEventListener("click", (e) => {
       e.preventDefault();
-      show(formCard);
-      setTimeout(()=>formCard.scrollIntoView({behavior:"smooth", block:"start"}), 50);
+      openFormUI();
     });
   }
 
   if (backHome && formCard) {
-    backHome.addEventListener("click", () => {
-      hide(formCard);
-      hide(statusOk);
-      hide(statusErr);
-      hide(statusSending);
-      sessionStorage.removeItem("booking_sending");
-      window.scrollTo({top:0, behavior:"smooth"});
-    });
+    backHome.addEventListener("click", closeFormUI);
   }
 
-  // --- API helper (UNIFICADO) ---
+  // --- API helper ---
   async function api(payload){
     const r = await fetch(WEB_APP_URL,{
       method:"POST",
@@ -487,13 +595,13 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadBarbers(){
     if (!selBarbero) return;
 
-    selBarbero.innerHTML = `<option value="">Cargando barberos…</option>`;
+    selBarbero.innerHTML = <option value="">Cargando barberos…</option>;
     selBarbero.disabled = true;
 
     const res = await api({ action:"listBarbers" });
 
     if (!res || !res.ok) {
-      selBarbero.innerHTML = `<option value="">No se pudo cargar</option>`;
+      selBarbero.innerHTML = <option value="">No se pudo cargar</option>;
       selBarbero.disabled = false;
       return;
     }
@@ -501,14 +609,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const barbers = (res.barbers || []).filter(Boolean);
 
     if (barbers.length === 0) {
-      selBarbero.innerHTML = `<option value="">No hay barberos activos</option>`;
+      selBarbero.innerHTML = <option value="">No hay barberos activos</option>;
       selBarbero.disabled = false;
       return;
     }
 
     selBarbero.innerHTML =
-      `<option value="">Selecciona…</option>` +
-      barbers.map(b => `<option value="${String(b).replace(/"/g,'&quot;')}">${b}</option>`).join("");
+      <option value="">Selecciona…</option> +
+      barbers.map(b => <option value="${String(b).replace(/"/g,'&quot;')}">${b}</option>).join("");
 
     selBarbero.disabled = false;
   }
@@ -559,11 +667,9 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.textContent = h;
 
       btn.addEventListener("click", () => {
-        // desmarcar
         slotsGrid.querySelectorAll(".slotBtn").forEach(x => x.classList.remove("selected"));
         btn.classList.add("selected");
 
-        // guardar hora
         if (horaDisplay) horaDisplay.value = h;
         if (horaHidden) horaHidden.value = h;
       });
@@ -594,7 +700,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderSlots(res.slots || []);
   }
 
-  // Eventos
   if (selBarbero) selBarbero.addEventListener("change", loadSlots);
   if (inpFecha) inpFecha.addEventListener("change", loadSlots);
   if (refreshSlotsBtn) refreshSlotsBtn.addEventListener("click", loadSlots);
@@ -628,7 +733,6 @@ document.addEventListener("DOMContentLoaded", () => {
       hide(statusErr);
       show(statusSending);
 
-      // valida hora
       if (!horaHidden || !horaHidden.value) {
         hide(statusSending);
         show(statusErr);
@@ -651,12 +755,13 @@ document.addEventListener("DOMContentLoaded", () => {
           email: (fd.get("email")||"").trim(),
           barbero: (fd.get("barbero")||"").trim(),
           fecha: fd.get("fecha"),
-          hora: fd.get("hora"), // viene de horaHidden
+          hora: fd.get("hora"),
           pago: fd.get("pago"),
           presupuesto: fd.get("presupuesto"),
           descripcion: (fd.get("descripcion")||"").trim(),
           fotos: await filesToBase64(),
-          source: "web"
+          source: "web",
+          servicio: "CORTE_DE_CABELLO" // ✅ etiqueta (no rompe tu backend)
         };
 
         const res = await api(payload);
@@ -688,6 +793,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Inicial
   loadBarbers();
 
+  // ✅ Form empieza cerrado con animación lista
+  if (formCard) formCard.classList.remove("open");
 });
 </script>
 
