@@ -68,14 +68,27 @@ const $ = (id)=>document.getElementById(id);
 const show = (el)=>el.style.display="block";
 const hide = (el)=>el.style.display="none";
 
-async function api(payload){
-  const r = await fetch(WEB_APP_URL,{
-    method:"POST",
-    headers:{ "Content-Type":"text/plain;charset=utf-8" },
-    body: JSON.stringify(payload)
+function api(payload){
+  return new Promise((resolve) => {
+    const cb = "cb_" + Math.random().toString(36).slice(2);
+    window[cb] = (data) => {
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+      script.remove();
+      resolve(data);
+    };
+
+    const qs = new URLSearchParams(payload).toString();
+    const url = `${WEB_APP_URL}?${qs}&callback=${cb}`;
+
+    const script = document.createElement("script");
+    script.src = url;
+    script.onerror = () => {
+      try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+      script.remove();
+      resolve({ ok:false, error:"No se pudo conectar (JSONP)" });
+    };
+    document.body.appendChild(script);
   });
-  const t = await r.text();
-  try { return JSON.parse(t); } catch { return {ok:false,error:"Respuesta inválida"}; }
 }
 
 (async ()=>{
