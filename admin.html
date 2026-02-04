@@ -90,9 +90,30 @@ function api(payload){
     document.body.appendChild(script);
   });
 }
+function apiJSONP(action, params = {}) {
+  return new Promise((resolve) => {
+    const cb = "cb_" + Math.random().toString(36).slice(2);
+    window[cb] = (data) => {
+      try { resolve(data); }
+      finally {
+        delete window[cb];
+        script.remove();
+      }
+    };
 
+    const qs = new URLSearchParams({ action, callback: cb, ...params });
+    const script = document.createElement("script");
+    script.src = `${WEB_APP_URL}?${qs.toString()}`;
+    script.onerror = () => {
+      delete window[cb];
+      script.remove();
+      resolve({ ok:false, error:"No se pudo conectar (JSONP)" });
+    };
+    document.body.appendChild(script);
+  });
+}
 (async ()=>{
-  const res = await api({action:"listBarbers"});
+ const res = await apiJSONP("listBarbers");
   const sel = $("barbero");
   sel.innerHTML = '<option value="">Selecciona…</option>';
   (res.barbers||[]).forEach(b=>{
