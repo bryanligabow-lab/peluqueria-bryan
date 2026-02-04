@@ -606,8 +606,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Boot
-  await loadBarbers();
-
+loadBarbers().then(async () => {
   const sess = getSession();
   if (sess?.token && sess?.barber){
     setLoggedUI(true);
