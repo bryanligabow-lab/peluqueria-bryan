@@ -814,17 +814,18 @@ document.addEventListener("DOMContentLoaded", () => {
           servicio: "CORTE_DE_CABELLO"
         };
 
-        const res = await api(payload);
+        const res = await apiPostForm(payload);
 
-        if (res.ok) {
-          hide(statusSending);
-          show(statusOk);
-          citaForm.reset();
-          hide(slotsCard);
-          resetSelectedHour();
-        } else {
-          throw new Error(res.error || "Error al reservar");
-        }
+       if (res.ok) {
+  hide(statusSending);
+  show(statusOk);
+  statusOk.textContent = "✅ Solicitud enviada. Revisa tu correo para confirmar.";
+  citaForm.reset();
+  hide(slotsCard);
+  resetSelectedHour();
+} else {
+  throw new Error(res.error || "Error al reservar");
+}
 
       } catch (err) {
         hide(statusSending);
