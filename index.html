@@ -728,26 +728,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function loadSlots(){
-    const barbero = (selBarbero?.value || "").trim();
-    const fecha = (inpFecha?.value || "").trim();
+  const barbero = (selBarbero?.value || "").trim();
+  const fecha = (inpFecha?.value || "").trim(); // yyyy-mm-dd
 
-    if (!barbero || !fecha) {
-      hide(slotsCard);
-      resetSelectedHour();
-      return;
-    }
-
-    setLoadingSlots(true);
-
-    const res = await api({ action:"getSlots", barbero, fecha });
-
-    if (!res || !res.ok) {
-      setEmptySlots();
-      return;
-    }
-
-    renderSlots(res.slots || []);
+  if (!barbero || !fecha) {
+    hide(slotsCard);
+    resetSelectedHour();
+    return;
   }
+
+  setLoadingSlots(true);
+
+  // ✅ USAR JSONP (evita CORS)
+  const res = await apiJSONP("getSlots", { barbero, fecha });
+
+  if (!res || !res.ok) {
+    setEmptySlots();
+    return;
+  }
+
+  renderSlots(res.slots || []);
+}
 
   if (selBarbero) selBarbero.addEventListener("change", loadSlots);
   if (inpFecha) inpFecha.addEventListener("change", loadSlots);
