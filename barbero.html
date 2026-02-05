@@ -417,7 +417,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnLogin.disabled = true;
     btnLogin.textContent = "⏳ Verificando…";
 
-    const res = await api({ action:"barberLogin", barber, pin });
+    const res = await api({ action:"panelLogin", barbero: barber, pin });
 
     btnLogin.disabled = false;
     btnLogin.textContent = "✅ Entrar";
@@ -455,10 +455,9 @@ document.addEventListener("DOMContentLoaded", () => {
     btnRefresh.textContent = "⏳ Actualizando…";
 
     const res = await api({
-      action: "barberListRequests",
-      token: sess.token,
-      barber: sess.barber
-    });
+  action: "panelList",
+  token: sess.token
+});
 
     btnRefresh.disabled = false;
     btnRefresh.textContent = "🔄 Actualizar";
@@ -548,7 +547,7 @@ document.addEventListener("DOMContentLoaded", () => {
     div.querySelectorAll("button[data-act]").forEach(btn => {
       btn.addEventListener("click", async () => {
         const act = btn.getAttribute("data-act");
-        await updateRequest(item.id, act);
+        await updateRequest(item.reserva_id, act);
       });
     });
 
@@ -571,11 +570,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!ok) return;
 
     const res = await api({
-      action: "barberUpdateRequest",
-      token: sess.token,
-      id,
-      decision // "ACEPTAR" | "RECHAZAR"
-    });
+  action: "panelDecision",
+  token: sess.token,
+  reservaId: id,
+  decision
+});
 
     if (!res || !res.ok){
       showStatus(res?.error || "No se pudo actualizar.", false);
